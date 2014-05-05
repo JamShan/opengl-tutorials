@@ -14,11 +14,11 @@ When building make sure you have an OpenGL v3.x+ compatible GPU card and the lat
 
 #### opengl-tutorial.org
 
-The [opengl-tutorial-web] project is a set of C++ tutorials covering OpenGL v3.3+.
+The [opengl-tutorial.org] project is a set of C++ tutorials covering OpenGL v3.3+.
 
 This [port][opengl-tutorial-port] contains all of the code samples which have been ported into D.
 
-[opengl-tutorial-web]: http://www.opengl-tutorial.org/
+[opengl-tutorial.org]: http://www.opengl-tutorial.org/
 [opengl-tutorial-port]: https://raw.github.com/AndrejMitrovic/opengl-tutorials/ports/opengl-tutorial.org
 
 ## Building
