@@ -4,9 +4,9 @@ This is a collection of of D OpenGL Tutorials and D ports of C/C++/WebGL samples
 
 ## About
 
-These samples use OpenGL v3.x+, and will not cover the outdated immediate mode OpenGL.
+These samples use OpenGL v3.x+ and do not cover the outdated immediate mode OpenGL.
 
-When building make sure you have an OpenGL v3.x+ compatible GPU card and the latest device drivers installed.
+When building make sure you have an OpenGL v3.x+ compatible GPU card and the latest device drivers.
 
 ## List of Tutorials and Ports
 
@@ -15,6 +15,7 @@ When building make sure you have an OpenGL v3.x+ compatible GPU card and the lat
 #### opengl-tutorial.org
 
 The [opengl-tutorial-web] project is a set of C++ tutorials covering OpenGL v3.3+.
+
 This [port][opengl-tutorial-port] contains all of the code samples which have been ported into D.
 
 [opengl-tutorial-web]: http://www.opengl-tutorial.org/
