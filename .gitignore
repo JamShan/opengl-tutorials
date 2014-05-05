@@ -1,2 +1,5 @@
 .dub
 *.dll
+*.bat
+bin/
+SciTEDirectory.properties
