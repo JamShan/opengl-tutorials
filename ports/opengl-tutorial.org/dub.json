@@ -1,5 +1,5 @@
 {
-	"name": "opengl-tutorial.org",
+    "name": "opengl-tutorial.org",
 
     "description": "D ports of the opengl-tutorial.org OpenGL tutorial.",
 
@@ -11,13 +11,13 @@
     },
 
     "subConfigurations": {
-		"dgl": "dgl-glad"
-	},
+        "dgl": "dgl-glad"
+    },
 
     "authors": [
-		"Sam Hocevar",
-		"Andrej Mitrovic"
-	],
+        "Sam Hocevar",
+        "Andrej Mitrovic"
+    ],
 
     "homepage": "https://github.com/AndrejMitrovic/opengl-tutorials",
 
@@ -26,12 +26,21 @@
     "license": "WTFPL Public Licence",
 
     "configurations": [
-		{
-			"name": "tut1",
+        {
+            "name": "tut_01",
             "targetName": "tut_01",
-			"targetType": "executable",
-			"targetPath": "bin",
-            "sourceFiles": ["src/tut_01_simple.d",],
-		},
-	]
+            "targetType": "executable",
+            "targetPath": "bin",
+            "sourceFiles": ["code/tut_01_window.d", "code/helper.d"],
+        },
+
+        {
+            "name": "tut_02",
+            "targetName": "tut_02",
+            "targetType": "executable",
+            "targetPath": "bin",
+            "sourceFiles": ["code/tut_02_triangle.d", "code/helper.d"],
+        },
+
+    ]
 }

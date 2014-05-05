@@ -1,6 +1,6 @@
 # opengl-tutorials
 
-This is a collection of of D OpenGL Tutorials and D ports of C/C++/WebGL samples.
+This is a collection of D OpenGL Tutorials and D ports of C/C++/WebGL samples.
 
 ## About
 
