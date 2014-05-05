@@ -1,0 +1,37 @@
+{
+	"name": "opengl-tutorial.org",
+
+    "description": "D ports of the opengl-tutorial.org OpenGL tutorial.",
+
+    "dependencies": {
+        "glad-drey": ">=0.0.1",
+        "glfw-drey": ">=0.0.2",
+        "glwtf-drey": ">=0.0.1",
+        "dgl": ">=0.0.1"
+    },
+
+    "subConfigurations": {
+		"dgl": "dgl-glad"
+	},
+
+    "authors": [
+		"Sam Hocevar",
+		"Andrej Mitrovic"
+	],
+
+    "homepage": "https://github.com/AndrejMitrovic/opengl-tutorials",
+
+    "copyright": "Copyright (C) 2004 Sam Hocevar <sam@hocevar.net>, Copyright © 2014, Andrej Mitrovic",
+
+    "license": "WTFPL Public Licence",
+
+    "configurations": [
+		{
+			"name": "tut1",
+            "targetName": "tut_01",
+			"targetType": "executable",
+			"targetPath": "bin",
+            "sourceFiles": ["src/tut_01_simple.d",],
+		},
+	]
+}
