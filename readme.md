@@ -19,7 +19,7 @@ The [opengl-tutorial.org] project is a set of C++ tutorials covering OpenGL v3.3
 The included D [port][opengl-tutorial-port] contains all of the code samples which have been ported into D.
 
 [opengl-tutorial.org]: http://www.opengl-tutorial.org/
-[opengl-tutorial-port]: https://raw.github.com/AndrejMitrovic/opengl-tutorials/ports/opengl-tutorial.org
+[opengl-tutorial-port]: https://github.com/AndrejMitrovic/opengl-tutorials/tree/master/ports/opengl-tutorial.org
 
 ## Building
 
