@@ -33,10 +33,6 @@ including any extensions.
 
 Unless noted otherwise, samples are distributed under the [WTFPL Public License][WTFPL_License], Version 2, December 2004.
 
-Note that samples which were ported from existing tutorials likely have their own specific license.
-
-See their accompanying license headers for more info.
-
 [dub]: http://code.dlang.org/download
 [WTFPL_License]: http://www.wtfpl.net/txt/copying
 [glad]: https://github.com/Dav1dde/glad

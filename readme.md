@@ -24,7 +24,7 @@ latest device drivers.
 ## Building
 
 All of the samples in this repository can be built using [dub] and a recent
-version of a [D Compiler][Compilers].
+version of a D [compiler][compilers].
 
 ## List of OpenGL projects in this repository
 
@@ -85,4 +85,4 @@ See their accompanying license headers for more info.
 [BoostLicense]: http://www.boost.org/LICENSE_1_0.txt
 [Derelict3]: https://github.com/aldacron/Derelict3
 [glad]: https://github.com/Dav1dde/glad
-[Compilers]: http://wiki.dlang.org/Compilers
+[compilers]: http://wiki.dlang.org/Compilers

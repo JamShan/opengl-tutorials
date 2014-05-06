@@ -132,7 +132,7 @@ ProgramState initProgramState()
 void render(ref ProgramState state)
 {
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f);  // dark blue
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     state.program.bind();
 
