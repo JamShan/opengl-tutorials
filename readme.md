@@ -12,7 +12,24 @@ When building make sure you have an OpenGL v3.x+ compatible GPU card and the lat
 
 ### Ports
 
-#### opengl-tutorial.org
+#### Upcoming Ports
+
+There are several D ports that are awaiting some cleanup and dub-ification,
+these will be coming soon:
+
+- http://www.arcsynthesis.org/gltut
+- http://open.gl
+
+#### Planned Ports
+
+- http://www.antongerdelan.net/opengl
+- http://www.swiftless.com/opengl4tuts.html
+- http://www.swiftless.com/glsltuts.html
+- http://ogldev.atspace.co.uk/
+- http://duriansoftware.com/joe/An-intro-to-modern-OpenGL.-Table-of-Contents.html
+- http://www.lighthouse3d.com/tutorials/glsl-core-tutorial/
+
+#### opengl-tutorial.org (work in progress)
 
 The [opengl-tutorial.org] project is a set of C++ tutorials covering OpenGL v3.3+.
 
