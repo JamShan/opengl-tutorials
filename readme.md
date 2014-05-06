@@ -1,21 +1,39 @@
 # opengl-tutorials
 
-This is a collection of D OpenGL Tutorials and D ports of C/C++/WebGL samples.
-
 ## About
 
-These samples use OpenGL v3.x+ and do not cover the outdated immediate mode OpenGL.
+This is a collection of D ports of various C/C++/WebGL online OpenGL tutorials
+and samples contained within OpenGL books, as well as any new D OpenGL examples.
 
-When building make sure you have an OpenGL v3.x+ compatible GPU card and the latest device drivers.
+This project seeks to be a hub of ready-to-compile OpenGL examples which will
+make it easy for new D game developers to learn from and experiment with.
 
-## List of Tutorials and Ports
+It is a long-term project and will be getting steady updates over time.
 
-### Ports
+Homepage: https://github.com/AndrejMitrovic/opengl-tutorials
+
+## Target OpenGL version
+
+These samples use OpenGL v3.x+ and do not cover the dated immediate mode OpenGL.
+
+## Hardware Requirements
+
+Before building make sure you have an OpenGL v3.x+ compatible GPU card and the
+latest device drivers.
+
+## Building
+
+All of the samples in this repository can be built using [dub] and a recent
+version of a [D Compiler][Compilers].
+
+## List of OpenGL projects in this repository
+
+### OpenGL Tutorial Ports
 
 #### Upcoming Ports
 
 There are several D ports that are awaiting some cleanup and dub-ification,
-these will be coming soon:
+the following will be coming soon:
 
 - http://www.arcsynthesis.org/gltut
 - http://open.gl
@@ -29,6 +47,23 @@ these will be coming soon:
 - http://duriansoftware.com/joe/An-intro-to-modern-OpenGL.-Table-of-Contents.html
 - http://www.lighthouse3d.com/tutorials/glsl-core-tutorial/
 
+Note: If you know of any other tutorials targetting OpenGL v3.x+ please file an issue
+with a link to the tutorial, thanks!
+
+Additionally examples from the following books might be worth porting,
+although these aren't planned yet:
+
+- Real-Time Rendering
+- OpenGL Programming Guide
+- OpenGL SuperBible
+- OpenGL Shading Language
+- OpenGL 4.0 Shading Language Cookbook
+- OpenGL Development Cookbook
+
+WebGL tutorials and books also exist in great numbers,
+although they might be more difficult to port to D due to the
+use of Javascript / HTML5.
+
 #### opengl-tutorial.org (work in progress)
 
 The [opengl-tutorial.org] project is a set of C++ tutorials covering OpenGL v3.3+.
@@ -37,10 +72,6 @@ The included D [port][opengl-tutorial-port] contains all of the code samples whi
 
 [opengl-tutorial.org]: http://www.opengl-tutorial.org/
 [opengl-tutorial-port]: https://github.com/AndrejMitrovic/opengl-tutorials/tree/master/ports/opengl-tutorial.org
-
-## Building
-
-All of the samples in this repository can be built using [dub].
 
 ## License
 
@@ -54,3 +85,4 @@ See their accompanying license headers for more info.
 [BoostLicense]: http://www.boost.org/LICENSE_1_0.txt
 [Derelict3]: https://github.com/aldacron/Derelict3
 [glad]: https://github.com/Dav1dde/glad
+[Compilers]: http://wiki.dlang.org/Compilers
