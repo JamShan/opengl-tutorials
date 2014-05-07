@@ -4,10 +4,10 @@
     "description": "D ports of the opengl-tutorial.org OpenGL tutorial.",
 
     "dependencies": {
-        "glad-drey": ">=0.0.1",
+        "glad-drey": ">=0.0.2",
         "glfw-drey": ">=0.0.2",
         "glwtf-drey": ">=0.0.1",
-        "dgl": ">=0.0.3"
+        "dgl": ">=0.0.3",
     },
 
     "subConfigurations": {
@@ -30,5 +30,6 @@
     "subPackages": [
         "code/tut01",
         "code/tut02",
+        "code/tut03",
     ]
 }

@@ -12,20 +12,20 @@ module tut_02_triangle;
 
 import deimos.glfw.glfw3;
 
-import glad.gl.enums;
-import glad.gl.ext;
-import glad.gl.funcs;
-import glad.gl.loader;
-import glad.gl.types;
+import glad.gl.all;
 
 import dgl;
 
 import gltut.utility;
 
-/// Contains all of our state. Avoids using globals.
+/**
+    Contains all of our OpenGL program state. 
+    This avoids the use of globals like in the tutorial
+    and makes the code more maintainable.
+*/
 struct ProgramState
 {
-    /// Use initProgramState to get an instance.
+    /// Use getProgramState to get an instance.
     @disable this();
 
     /** Release all GL resources. */
@@ -43,7 +43,7 @@ struct ProgramState
 
 private:
 
-    /** Explicit ctor. Use initProgramState instead. */
+    /** Explicit ctor. Use getProgramState to get an instance. */
     this(int)
     {
         initVertices();
@@ -59,8 +59,8 @@ private:
         [
             // 3 vertices (x, y, z)
            -1.0f, -1.0f, 0.0f,
-           1.0f, -1.0f, 0.0f,
-           0.0f,  1.0f, 0.0f,
+            1.0f, -1.0f, 0.0f,
+            0.0f,  1.0f, 0.0f,
         ];
 
         vertices = new GLBuffer(positions, UsageHint.staticDraw);
@@ -131,12 +131,12 @@ private:
     Return an instance of ProgramState which will have
     its dtor called at the exit of the scope.
 */
-ProgramState initProgramState()
+ProgramState getProgramState()
 {
     return ProgramState(1);
 }
 
-/** */
+/** Our main render routine. */
 void render(ref ProgramState state)
 {
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f);  // dark blue
@@ -165,7 +165,7 @@ void main()
 {
     auto window = createWindow("Tutorial 02 - Render Triangle");
 
-    auto state = initProgramState();
+    auto state = getProgramState();
 
     while (!glfwWindowShouldClose(window.window))
     {
