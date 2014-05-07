@@ -67,6 +67,22 @@ struct ProgramState
         glfwTerminate();
     }
 
+    /// Get the projection type.
+    @property ProjectionType projectionType()
+    {
+        return _projectionType;
+    }
+
+    /// Set a new projection type. This will recalculate the mvp matrix.
+    @property void projectionType(ProjectionType newProjectionType)
+    {
+        if (newProjectionType == _projectionType)
+            return;
+
+        _projectionType = newProjectionType;
+        initProjection();
+    }
+
 private:
 
     void initVertices()
@@ -125,19 +141,6 @@ private:
     {
         this.positionAttribute = program.getAttribute("vertexPosition_modelspace");
         this.mvpUniform = program.getUniform("mvpMatrix");
-    }
-
-    /// Get the projection type.
-    @property ProjectionType projectionType() { return _projectionType; }
-
-    /// Set a new projection type. This will recalculate the mvp matrix.
-    @property void projectionType(ProjectionType newProjectionType)
-    {
-        if (newProjectionType == _projectionType)
-            return;
-
-        _projectionType = newProjectionType;
-        initProjection();
     }
 
     void initProjection()
