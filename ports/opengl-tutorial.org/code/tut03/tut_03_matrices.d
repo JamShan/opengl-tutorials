@@ -239,10 +239,10 @@ void render(ref ProgramState state)
 
     state.program.bind();
 
-    // set to true when converting row-major to column-major order.
-    // gl3n uses row-major, unlike the C++ glm library.
+    // set this to true when converting matrices from row-major order
+    // to column-major order. Note that gl3n uses row-major ordering,
+    // unlike the C++ glm library.
     enum doTranspose = GL_TRUE;
-
     enum matrixCount = 1;
     glUniformMatrix4fv(state.mvpUniform.ID, matrixCount, doTranspose, &state.mvpMatrix[0][0]);
 
