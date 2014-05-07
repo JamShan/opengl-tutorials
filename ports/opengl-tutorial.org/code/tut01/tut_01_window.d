@@ -3,7 +3,7 @@
  *  Distributed under the WTFPL Public License, Version 2, December 2004
  *         (See license copy at http://www.wtfpl.net/txt/copying)
  */
-module code.tut_01_window;
+module tut_01_window;
 
 /**
     D2 Port of:
@@ -12,7 +12,7 @@ module code.tut_01_window;
 
 import deimos.glfw.glfw3;
 
-import code.helper;
+import gltut.utility;
 
 void main()
 {

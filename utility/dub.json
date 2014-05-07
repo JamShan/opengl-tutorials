@@ -1,0 +1,31 @@
+{
+    "name": "gltut-utility",
+
+    "description": "None",
+
+    "dependencies": {
+        "glad-drey": ">=0.0.1",
+        "glfw-drey": ">=0.0.2",
+        "glwtf-drey": ">=0.0.1",
+    },
+
+    "targetName": "gltut-utility",
+
+    "targetType": "staticLibrary",
+
+    "targetPath" : "bin",
+
+    "sourcePaths": [
+        "src"
+    ],
+
+    "authors": [
+        "Andrej Mitrovic"
+    ],
+
+    "homepage": "https://github.com/AndrejMitrovic/opengl-tutorials",
+
+    "copyright": "Copyright © 2014, Andrej Mitrovic",
+
+    "license": "BSL-1.0",
+}

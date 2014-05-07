@@ -4,7 +4,11 @@
  *     (See accompanying file LICENSE_1_0.txt or copy at
  *           http://www.boost.org/LICENSE_1_0.txt)
  */
-module code.helper;
+module gltut.utility;
+
+/**
+    Contains various helpers, common code, and initialization routines.
+*/
 
 import std.algorithm : min;
 import std.exception : enforce;
@@ -22,10 +26,6 @@ import glad.gl.types;
 
 import glwtf.input;
 import glwtf.window;
-
-/**
-    Contains various helpers, common code, and initialization routines.
-*/
 
 /// init
 shared static this()
@@ -54,11 +54,11 @@ Window createWindow(string windowName, WindowMode windowMode = WindowMode.window
 {
     auto vidMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
-    // normalize the width so it isn't larger than the desktop screen.
+    // constrain the window size so it isn't larger than the desktop size.
     width = min(width, vidMode.width);
     height = min(height, vidMode.height);
 
-    // set the window to be initially inivisible since we're moving it.
+    // set the window to be initially inivisible since we're repositioning it.
     glfwWindowHint(GLFW_VISIBLE, 0);
 
     // enable debugging
@@ -69,6 +69,7 @@ Window createWindow(string windowName, WindowMode windowMode = WindowMode.window
     // center the window on the screen
     glfwSetWindowPos(window.window, (vidMode.width - width) / 2, (vidMode.height - height) / 2);
 
+    // glfw-specific error routine (not a generic GL error handler)
     register_glfw_error_callback(&glfwErrorCallback);
 
     // anti-aliasing number of samples.
@@ -79,6 +80,8 @@ Window createWindow(string windowName, WindowMode windowMode = WindowMode.window
 
     // load all OpenGL function pointers via glad.
     enforce(gladLoadGL());
+
+    enforce(glGenBuffers !is null);
 
     // only interested in GL 3.x
     enforce(GLVersion.major >= 3);
@@ -100,12 +103,13 @@ Window createWindow(string windowName, WindowMode windowMode = WindowMode.window
 
 
     // hook the debug callback
-    // cast: derelict assumes its nothrow
+    // cast: when using derelict it assumes its nothrow
     hookDebugCallback(cast(GLDEBUGPROCARB)&glErrorCallback, null);
 
-    // enable stack traces (otherwise we'd get random failures at runtime)
+    // enable proper stack tracing support (otherwise we'd get random failures at runtime)
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
 
+    // finally show the window
     glfwShowWindow(window.window);
 
     return window;
@@ -141,8 +145,8 @@ void onWindowResize(int width, int height)
         It defines as a region of the window, specified by the
         bottom-left position and a width/height.
 
-        Note about viewport transform:
-        The process of transforming vertex data from normalized
+        Note about the viewport transform:
+        It is the process of transforming vertex data from normalized
         device coordinate space to window space. It specifies the
         viewable region of a window.
     */
@@ -159,9 +163,7 @@ void glfwErrorCallback(int code, string msg)
     GL_ARB_debug_output or GL_KHR_debug callback.
 
     Throwing exceptions across language boundaries should be fine as
-    long as $(B GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB) was enabled.
-
-    This will emit proper stack traces.
+    long as $(B GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB) is enabled.
 */
 extern (Windows)
 private void glErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, in GLchar* message, GLvoid* userParam)

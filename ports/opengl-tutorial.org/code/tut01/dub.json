@@ -1,0 +1,31 @@
+{
+    "name": "tut01",
+
+    "description": "tut01",
+
+    "authors": [
+        "Sam Hocevar",
+        "Andrej Mitrovic"
+    ],
+
+    "dependencies": {
+        "opengl-tutorial.org": {"path": "../../", "version": "~master"},
+        "gltut-utility": {"path": "../../../../utility", "version": "~master"}
+    },
+
+    "targetName" : "tut01",
+
+    "targetPath" : "../../bin",
+
+    "targetType": "executable",
+
+    "sourceFiles": ["tut_01_window.d"],
+
+    "mainSourceFile": "tut_01_window.d",
+
+    "homepage": "https://github.com/AndrejMitrovic/opengl-tutorials",
+
+    "copyright": "Copyright (C) 2004 Sam Hocevar <sam@hocevar.net>, Copyright © 2014, Andrej Mitrovic",
+
+    "license": "WTFPL Public Licence",
+}

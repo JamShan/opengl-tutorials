@@ -3,7 +3,7 @@
  *  Distributed under the WTFPL Public License, Version 2, December 2004
  *         (See license copy at http://www.wtfpl.net/txt/copying)
  */
-module code.tut_02_triangle;
+module tut_02_triangle;
 
 /**
     D2 Port of:
@@ -12,9 +12,15 @@ module code.tut_02_triangle;
 
 import deimos.glfw.glfw3;
 
+import glad.gl.enums;
+import glad.gl.ext;
+import glad.gl.funcs;
+import glad.gl.loader;
+import glad.gl.types;
+
 import dgl;
 
-import code.helper;
+import gltut.utility;
 
 /// Contains all of our state. Avoids using globals.
 struct ProgramState
@@ -31,6 +37,8 @@ struct ProgramState
             shader.release();
 
         program.release();
+
+        glfwTerminate();
     }
 
 private:
@@ -161,7 +169,7 @@ void main()
 
     while (!glfwWindowShouldClose(window.window))
     {
-        /* Rendering to the back buffer. */
+        /* Render to the back buffer. */
         render(state);
 
         /* Swap front and back buffers. */

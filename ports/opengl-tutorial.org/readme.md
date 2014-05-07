@@ -7,9 +7,25 @@ The included D [port][opengl-tutorial-port] contains all of the code samples whi
 [opengl-tutorial.org]: http://www.opengl-tutorial.org/
 [opengl-tutorial-port]: https://github.com/AndrejMitrovic/opengl-tutorials/tree/master/ports/opengl-tutorial.org
 
-## Building
+## Requirements
 
-All of the samples in this repository can be built using [dub].
+You will need to install the [glfw] shared library.
+Make sure it's in your `PATH` environment variable,
+or alternatively copy the [glfw] shared library to the `bin`
+folder where the samples are built.
+
+## Building the samples
+
+All of the samples in this repository can be built using [dub]:
+
+```
+# note: In an upcoming dub release this will be 'dub run :tut01'
+$ dub run opengl-tutorial.org:tut01
+
+# alternatively
+$ cd code/tut01
+$ dub
+```
 
 ## Tutorial Reading Guide
 

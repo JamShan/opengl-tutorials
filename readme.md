@@ -30,7 +30,16 @@ version of a D [compiler][compilers].
 
 ### OpenGL Tutorial Ports
 
-#### Upcoming Ports
+#### opengl-tutorial.org (work in progress)
+
+The [opengl-tutorial.org] project is a set of C++ tutorials covering OpenGL v3.3+.
+
+The included D [port][opengl-tutorial-port] contains all of the code samples which have been ported into D.
+
+[opengl-tutorial.org]: http://www.opengl-tutorial.org/
+[opengl-tutorial-port]: https://github.com/AndrejMitrovic/opengl-tutorials/tree/master/ports/opengl-tutorial.org
+
+### Upcoming Ports
 
 There are several D ports that are awaiting some cleanup and dub-ification,
 the following will be coming soon:
@@ -38,7 +47,7 @@ the following will be coming soon:
 - http://www.arcsynthesis.org/gltut
 - http://open.gl
 
-#### Planned Ports
+### Planned Ports
 
 - http://www.antongerdelan.net/opengl
 - http://www.swiftless.com/opengl4tuts.html
@@ -63,15 +72,6 @@ although these aren't planned yet:
 WebGL tutorials and books also exist in great numbers,
 although they might be more difficult to port to D due to the
 use of Javascript / HTML5.
-
-#### opengl-tutorial.org (work in progress)
-
-The [opengl-tutorial.org] project is a set of C++ tutorials covering OpenGL v3.3+.
-
-The included D [port][opengl-tutorial-port] contains all of the code samples which have been ported into D.
-
-[opengl-tutorial.org]: http://www.opengl-tutorial.org/
-[opengl-tutorial-port]: https://github.com/AndrejMitrovic/opengl-tutorials/tree/master/ports/opengl-tutorial.org
 
 ## License
 

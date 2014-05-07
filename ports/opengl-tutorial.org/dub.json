@@ -7,12 +7,14 @@
         "glad-drey": ">=0.0.1",
         "glfw-drey": ">=0.0.2",
         "glwtf-drey": ">=0.0.1",
-        "dgl": ">=0.0.1"
+        "dgl": ">=0.0.3"
     },
 
     "subConfigurations": {
-        "dgl": "dgl-glad"
-    },
+		"dgl": "dgl-glad"
+	},
+
+    "targetType": "none",
 
     "authors": [
         "Sam Hocevar",
@@ -25,22 +27,8 @@
 
     "license": "WTFPL Public Licence",
 
-    "configurations": [
-        {
-            "name": "tut_01",
-            "targetName": "tut_01",
-            "targetType": "executable",
-            "targetPath": "bin",
-            "sourceFiles": ["code/tut_01_window.d", "code/helper.d"],
-        },
-
-        {
-            "name": "tut_02",
-            "targetName": "tut_02",
-            "targetType": "executable",
-            "targetPath": "bin",
-            "sourceFiles": ["code/tut_02_triangle.d", "code/helper.d"],
-        },
-
+    "subPackages": [
+        "code/tut01",
+        "code/tut02",
     ]
 }
