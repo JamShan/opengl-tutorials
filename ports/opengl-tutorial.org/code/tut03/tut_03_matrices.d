@@ -1,4 +1,14 @@
+/*
+ *            Copyright (C) 2004 Sam Hocevar <sam@hocevar.net>
+ *  Distributed under the WTFPL Public License, Version 2, December 2004
+ *         (See license copy at http://www.wtfpl.net/txt/copying)
+ */
 module tut_03_matrices;
+
+/**
+    D2 Port of:
+    http://www.opengl-tutorial.org/beginners-tutorials/tutorial-3-matrices/
+*/
 
 import deimos.glfw.glfw3;
 
