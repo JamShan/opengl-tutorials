@@ -1,9 +1,5 @@
 module tut_03_matrices;
 
-//~ import std.stdio;
-//~ import std.exception;
-//~ import std.math;
-
 import deimos.glfw.glfw3;
 
 import glwtf.input;
@@ -18,16 +14,6 @@ import gl3n.math;
 
 import gltut.utility;
 
-//~ void print(string name, mat4 Mat0)
-//~ {
-	//~ writeln(name);
-	//~ writeln("mat4(");
-	//~ writefln("\tvec4(%2.3f, %2.3f, %2.3f, %2.3f)", Mat0[0][0], Mat0[0][1], Mat0[0][2], Mat0[0][3]);
-	//~ writefln("\tvec4(%2.3f, %2.3f, %2.3f, %2.3f)", Mat0[1][0], Mat0[1][1], Mat0[1][2], Mat0[1][3]);
-	//~ writefln("\tvec4(%2.3f, %2.3f, %2.3f, %2.3f)", Mat0[2][0], Mat0[2][1], Mat0[2][2], Mat0[2][3]);
-	//~ writefln("\tvec4(%2.3f, %2.3f, %2.3f, %2.3f))\n", Mat0[3][0], Mat0[3][1], Mat0[3][2], Mat0[3][3]);
-//~ }
-
 /// The type of projection we want to use.
 enum ProjectionType
 {
@@ -37,8 +23,8 @@ enum ProjectionType
 
 /**
     Contains all of our OpenGL program state.
-    This avoids the use of globals like in the tutorial
-    and makes the code more maintainable.
+    This avoids the use of globals and
+    makes the code more maintainable.
 */
 struct ProgramState
 {
