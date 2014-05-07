@@ -38,7 +38,7 @@ struct ProgramState
         initVao();
     }
 
-    /** Release all GL resources. */
+    /** Release all OpenGL resources. */
     ~this()
     {
         vertices.release();
@@ -68,7 +68,7 @@ private:
 
     void initShaders()
     {
-        enum strVertexShader = q{
+        enum vertexShader = q{
             #version 330 core
 
             layout(location = 0) in vec3 vertexPosition_modelspace;
@@ -80,7 +80,7 @@ private:
             }
         };
 
-        enum strFragmentShader = q{
+        enum fragmentShader = q{
             #version 330 core
 
             out vec3 color;
@@ -91,8 +91,8 @@ private:
             }
         };
 
-        shaders ~= Shader.fromText(ShaderType.vertex, strVertexShader);
-        shaders ~= Shader.fromText(ShaderType.fragment, strFragmentShader);
+        shaders ~= Shader.fromText(ShaderType.vertex, vertexShader);
+        shaders ~= Shader.fromText(ShaderType.fragment, fragmentShader);
     }
 
     void initProgram()
