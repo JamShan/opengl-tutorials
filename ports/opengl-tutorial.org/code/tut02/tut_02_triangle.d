@@ -63,7 +63,7 @@ private:
             0.0f,  1.0f, 0.0f,
         ];
 
-        vertices = new GLBuffer(positions, UsageHint.staticDraw);
+        this.vertices = new GLBuffer(positions, UsageHint.staticDraw);
     }
 
     void initShaders()
@@ -91,24 +91,26 @@ private:
             }
         };
 
-        shaders ~= Shader.fromText(ShaderType.vertex, vertexShader);
-        shaders ~= Shader.fromText(ShaderType.fragment, fragmentShader);
+        this.shaders ~= Shader.fromText(ShaderType.vertex, vertexShader);
+        this.shaders ~= Shader.fromText(ShaderType.fragment, fragmentShader);
     }
 
     void initProgram()
     {
-        program = new Program(shaders);
+        this.program = new Program(shaders);
     }
 
     void initAttributes()
     {
-        positionAttribute = program.getAttribute("vertexPosition_modelspace");
+        this.positionAttribute = program.getAttribute("vertexPosition_modelspace");
     }
 
     void initVao()
     {
         // Note: this must be called when using the core profile,
-        // and must be called before any other OpenGL call.
+        // and it must be called before any other OpenGL call.
+        // VAOs have a proper use-case but it's not shown here,
+        // search the web for VAO documentation and check it out.
         GLuint vao;
         glGenVertexArrays(1, &vao);
         glBindVertexArray(vao);
