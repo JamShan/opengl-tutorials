@@ -7,7 +7,7 @@
         "glad-drey": ">=0.0.2",
         "glfw-drey": ">=0.0.2",
         "glwtf-drey": ">=0.0.1",
-        "dgl": ">=0.0.3",
+        "dgl": ">=0.0.4",
     },
 
     "subConfigurations": {
@@ -28,9 +28,10 @@
     "license": "WTFPL Public Licence",
 
     "subPackages": [
-        "code/tut01",
-        "code/tut02",
-        "code/tut03",
-        "code/tut04",
+        "samples/tut01",
+        "samples/tut02",
+        "samples/tut03",
+        "samples/tut04",
+        "samples/tut05",
     ]
 }

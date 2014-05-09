@@ -405,7 +405,7 @@ void bindColorAttribute(ref ProgramState state)
 
 void main()
 {
-    auto window = createWindow("Tutorial 03 - Matrices");
+    auto window = createWindow("Tutorial 04 - Colored Cube");
 
     auto state = ProgramState(window);
 
