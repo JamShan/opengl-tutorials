@@ -155,7 +155,7 @@ private:
             {
                 float left = -10.0;
                 float right = 10.0;
-                float bottom = -10.0;  // todo: check if this should be swapped with top
+                float bottom = -10.0;
                 float top = 10.0;
                 float near = 0.0;
                 float far = 100.0;

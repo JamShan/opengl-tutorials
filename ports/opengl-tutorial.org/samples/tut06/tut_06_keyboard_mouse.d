@@ -3,7 +3,7 @@
  *  Distributed under the WTFPL Public License, Version 2, December 2004
  *         (See license copy at http://www.wtfpl.net/txt/copying)
  */
-module tut_05_textured_cube;
+module tut_06_keyboard_mouse;
 
 /**
     D2 Port of:
@@ -51,6 +51,7 @@ struct ProgramState
     {
         this.window = window;
         this.workDirPath = thisExePath.dirName.buildPath("..");
+        this.lastTime = glfwGetTime();
 
         initVertices();
         initUV();
@@ -58,7 +59,7 @@ struct ProgramState
         initShaders();
         initProgram();
         initAttributesUniforms();
-        initProjection();
+        updateProjection();
         initVao();
     }
 
@@ -90,7 +91,37 @@ struct ProgramState
             return;
 
         _projectionType = newProjectionType;
-        initProjection();
+        updateProjection();
+    }
+
+    /// Get the current fov.
+    @property float fov()
+    {
+        return _fov;
+    }
+
+    /// Set a new fov. This will recalculate the mvp matrix.
+    @property void fov(float newFov)
+    {
+        if (newFov is fov)  // floats are bit-equal (note: don't ever use '==' with floats)
+            return;
+
+        _fov = newFov;
+        updateProjection();
+    }
+
+    /**
+        Recalculate the projection (e.g. after a FOV change or mouse position change).
+        Renamed from initProjection from previous tutorials.
+    */
+    void updateProjection()
+    {
+        auto projMatrix = getProjMatrix();
+        auto viewMatrix = getViewMatrix();
+        auto modelMatrix = getModelMatrix();
+
+        // Remember that matrix multiplication is right-to-left.
+        this.mvpMatrix = projMatrix * viewMatrix * modelMatrix;
     }
 
 private:
@@ -221,16 +252,6 @@ private:
         this.textureSamplerUniform = program.getUniform("textureSampler");
     }
 
-    void initProjection()
-    {
-        auto projMatrix = getProjMatrix();
-        auto viewMatrix = getViewMatrix();
-        auto modelMatrix = getModelMatrix();
-
-        // Remember that matrix multiplication is right-to-left.
-        this.mvpMatrix = projMatrix * viewMatrix * modelMatrix;
-    }
-
     mat4 getProjMatrix()
     {
         final switch (_projectionType) with (ProjectionType)
@@ -248,16 +269,13 @@ private:
 
             case perspective:
             {
-                float fov = 45.0f;
                 float near = 0.1f;
                 float far = 100.0f;
 
                 int width;
                 int height;
                 glfwGetWindowSize(window.window, &width, &height);
-
-                // auto fovRadian = fov * (PI/180);
-                return mat4.perspective(width, height, fov, near, far);
+                return mat4.perspective(width, height, _fov, near, far);
             }
         }
     }
@@ -265,10 +283,118 @@ private:
     // the view (camera) matrix
     mat4 getViewMatrix()
     {
-        auto eye = vec3(4, 3, 3);     // camera is at (4, 3, 3), in World Space.
-        auto target = vec3(0, 0, 0);  // it looks at the origin.
-        auto up = vec3(0, 1, 0);      // head is up (set to 0, -1, 0 to look upside-down).
-        return mat4.look_at(eye, target, up);
+        // Compute time difference between current and last frame
+        double currentTime = glfwGetTime();
+        float deltaTime = cast(float)(currentTime - lastTime);
+
+        // Get mouse position
+        double xpos, ypos;
+        glfwGetCursorPos(window.window, &xpos, &ypos);
+
+        // Reset mouse position for the next update.
+        glfwSetCursorPos(window.window, 0, 0);
+
+        /** If the window loses focus the values can become too large. */
+        xpos = max(-20, xpos).min(20);
+        ypos = max(-20, ypos).min(20);
+
+        // Compute new orientation
+        this.horizontalAngle -= this.mouseSpeed * cast(float)xpos;
+        this.verticalAngle   -= this.mouseSpeed * cast(float)ypos;
+
+        // Direction : Spherical coordinates to Cartesian coordinates conversion
+        this.direction = vec3(
+            cos(this.verticalAngle) * sin(this.horizontalAngle),
+            sin(this.verticalAngle),
+            cos(this.verticalAngle) * cos(this.horizontalAngle)
+        );
+
+        // Right vector
+        vec3 right = vec3(
+            sin(this.horizontalAngle - 3.14f / 2.0f),
+            0,
+            cos(this.horizontalAngle - 3.14f / 2.0f)
+        );
+
+        alias KeyForward = GLFW_KEY_W;
+        alias KeyBackward = GLFW_KEY_S;
+        alias KeyStrafeLeft = GLFW_KEY_A;
+        alias KeyStrafeRight = GLFW_KEY_D;
+        alias KeyClimb = GLFW_KEY_SPACE;
+        alias KeySink = GLFW_KEY_LEFT_SHIFT;
+
+        if (window.is_key_down(KeyForward))
+        {
+            this.position += deltaTime * this.direction * this.speed;
+        }
+
+        if (window.is_key_down(KeyBackward))
+        {
+            this.position -= deltaTime * this.direction * this.speed;
+        }
+
+        if (window.is_key_down(KeyStrafeLeft))
+        {
+            this.position -= deltaTime * right * this.speed;
+        }
+
+        if (window.is_key_down(KeyStrafeRight))
+        {
+            this.position += deltaTime * right * this.speed;
+        }
+
+        if (window.is_key_down(KeyClimb))
+        {
+            this.position.y += deltaTime * this.speed;
+        }
+
+        if (window.is_key_down(KeySink))
+        {
+            this.position.y -= deltaTime * this.speed;
+        }
+
+        void updateUVBuffer(vec2 offset)
+        {
+            foreach (ref uv; this.uvArr.chunks(2))
+            {
+                uv[0] += offset.x;
+                uv[1] += offset.y;
+            }
+
+            this.uvBuffer.write(this.uvArr);
+        }
+
+        if (window.is_key_down(GLFW_KEY_LEFT))
+        {
+            updateUVBuffer(vec2(deltaTime * -0.3, 0));
+        }
+
+        if (window.is_key_down(GLFW_KEY_RIGHT))
+        {
+            updateUVBuffer(vec2(deltaTime * 0.3, 0));
+        }
+
+        if (window.is_key_down(GLFW_KEY_UP))
+        {
+            updateUVBuffer(vec2(0, deltaTime * 0.3));
+        }
+
+        if (window.is_key_down(GLFW_KEY_DOWN))
+        {
+            updateUVBuffer(vec2(0, deltaTime * -0.3));
+        }
+
+        // Up vector
+        this.up = cross(right, this.direction);
+
+        // For the next frame, the "last time" will be "now"
+        lastTime = currentTime;
+
+        return mat4.look_at(
+            position,              // Camera is here
+            position + direction,  // and looks here - at the same position, plus "direction"
+            up                     // Head is up (set to 0, -1, 0 to look upside-down)
+        );
     }
 
     //
@@ -338,11 +464,33 @@ private:
         0.667979f, 1.0f - 0.335851f
     ];
 
+    double lastTime = 0;
+
+    // Initial position : on +Z
+    vec3 position = vec3(0, 0, 5);
+    vec3 direction;
+    vec3 up;
+
+    // Initial horizontal angle : toward -Z
+    float horizontalAngle = 3.14f;
+
+    // Initial vertical angle : none
+    float verticalAngle = 0.0f;
+
+    // Initial Field of View
+    float initialFoV = 45.0f;
+
+    float speed      = 3.0f; // 3 units / second
+    float mouseSpeed = 0.005f;
+
     // We need the window size to calculate the projection matrix.
     Window window;
 
     // Selectable projection type.
     ProjectionType _projectionType = ProjectionType.perspective;
+
+    // Field of view (note that this was hardcoded in getProjMatrix in previous tutorials)
+    float _fov = 45.0;
 
     // reference to a GPU buffer containing the vertices.
     GLBuffer vertexBuffer;
@@ -459,14 +607,8 @@ void loadDerelictSDL()
     DerelictSDL2Image.load();
 }
 
-void main()
+void hookCallbacks(Window window, ref ProgramState state)
 {
-    loadDerelictSDL();
-
-    auto window = createWindow("Tutorial 05 - Textured Cube");
-
-    auto state = ProgramState(window);
-
     /**
         We're using a keyboard callback that will update the projection type
         if the user presses the P (perspective) or O (orthographic) keys.
@@ -492,56 +634,49 @@ void main()
     // hook the callback
     window.on_key_down.strongConnect(onChangePerspective);
 
-    /**
-        A keyboard callback that handles Up/Down keys
-        which will change the UV coordinates in the UV buffer.
-        The buffer is then copied over to a GL buffer.
-        This isn't efficient but it serves as an example.
-    */
-    auto onUpDown =
-    (int key, int scanCode, int modifier)
+    auto onFovChange = (double hOffset, double vOffset)
     {
-        vec2 offset = vec2.init;
-
-        void updateBuffer()
-        {
-            foreach (ref uv; state.uvArr.chunks(2))
-            {
-                uv[0] += offset.x;
-                uv[1] += offset.y;
-            }
-
-            state.uvBuffer.write(state.uvArr);
-        }
-
-        switch (key)
-        {
-            case GLFW_KEY_UP:
-                offset = vec2(0.01, 0);
-                updateBuffer();
-                break;
-
-            case GLFW_KEY_DOWN:
-                offset = vec2(0, 0.01);
-                updateBuffer();
-                break;
-
-            default:
-        }
+        // change fov but limit it to a sane range.
+        // don't make the upper limit too low or
+        // you'll make TotalBiscuit angry. :P
+        auto fov = state.fov - (5 * vOffset);
+        fov = max(45.0, fov).min(100.0);
+        state.fov = fov;
     };
 
-    // hook the callback
-    window.on_key_down.strongConnect(onUpDown);
-    window.on_key_repeat.strongConnect(onUpDown);
+    window.on_scroll.strongConnect(onFovChange);
+}
+
+void main()
+{
+    loadDerelictSDL();
+
+    auto window = createWindow("Tutorial 06 - Keyboard & Mouse");
+
+    // hide the mouse cursor (even when not in client area).
+    window.set_input_mode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+    auto state = ProgramState(window);
+
+    hookCallbacks(window, state);
 
     // enable z-buffer depth testing.
     glEnable(GL_DEPTH_TEST);
 
-    // Accept fragment if it is closer to the camera than another one.
+    // accept fragment if it is closer to the camera than another one.
     glDepthFunc(GL_LESS);
+
+    // cull triangles whose normal is not towards the camera.
+	glEnable(GL_CULL_FACE);
 
     while (!glfwWindowShouldClose(window.window))
     {
+        /*
+            We want to update the camera position (the matrix)
+            for every rendered image.
+        */
+        state.updateProjection();
+
         /* Render to the back buffer. */
         render(state);
 

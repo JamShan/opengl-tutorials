@@ -215,7 +215,7 @@ private:
             {
                 float left = -10.0;
                 float right = 10.0;
-                float bottom = -10.0;  // todo: check if this should be swapped with top
+                float bottom = -10.0;
                 float top = 10.0;
                 float near = 0.0;
                 float far = 100.0;
@@ -441,7 +441,7 @@ void main()
         The buffer is then copied over to a GL buffer.
         This isn't efficient but it serves as an example.
     */
-    auto upDownHandler =
+    auto onUpDown =
     (int key, int scanCode, int modifier)
     {
         float addColor = 0.0;
@@ -470,8 +470,8 @@ void main()
     };
 
     // hook the callback
-    window.on_key_down.strongConnect(upDownHandler);
-    window.on_key_repeat.strongConnect(upDownHandler);
+    window.on_key_down.strongConnect(onUpDown);
+    window.on_key_repeat.strongConnect(onUpDown);
 
     // enable z-buffer depth testing.
     glEnable(GL_DEPTH_TEST);
