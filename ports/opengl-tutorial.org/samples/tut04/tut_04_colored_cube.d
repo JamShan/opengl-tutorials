@@ -53,8 +53,8 @@ struct ProgramState
     /** Release all OpenGL resources. */
     ~this()
     {
-        vertices.release();
-        colors.release();
+        vertexBuffer.release();
+        colorBuffer.release();
 
         foreach (shader; shaders)
             shader.release();
@@ -129,12 +129,12 @@ private:
              1.0f, -1.0f,  1.0f
         ];
 
-        this.vertices = new GLBuffer(positions, UsageHint.staticDraw);
+        this.vertexBuffer = new GLBuffer(positions, UsageHint.staticDraw);
     }
 
     void initColors()
     {
-        this.colors = new GLBuffer(colorsArr, UsageHint.staticDraw);
+        this.colorBuffer = new GLBuffer(colorsArr, UsageHint.staticDraw);
     }
 
     void initShaders()
@@ -319,10 +319,10 @@ private:
     ProjectionType _projectionType = ProjectionType.perspective;
 
     // reference to a GPU buffer containing the vertices.
-    GLBuffer vertices;
+    GLBuffer vertexBuffer;
 
     // ditto, but containing colors.
-    GLBuffer colors;
+    GLBuffer colorBuffer;
 
     // kept around for cleanup.
     Shader[] shaders;
@@ -370,10 +370,10 @@ void render(ref ProgramState state)
     glDrawArrays(GL_TRIANGLES, startIndex, vertexCount);
 
     state.positionAttribute.disable();
-    state.vertices.unbind();
+    state.vertexBuffer.unbind();
 
     state.colorAttribute.disable();
-    state.colors.unbind();
+    state.colorBuffer.unbind();
 
     state.program.unbind();
 }
@@ -386,7 +386,7 @@ void bindPositionAttribute(ref ProgramState state)
     enum int stride = 0;
     enum int offset = 0;
 
-    state.vertices.bind(state.positionAttribute, size, type, normalized, stride, offset);
+    state.vertexBuffer.bind(state.positionAttribute, size, type, normalized, stride, offset);
     state.positionAttribute.enable();
 }
 
@@ -399,7 +399,7 @@ void bindColorAttribute(ref ProgramState state)
     enum int stride = 0;
     enum int offset = 0;
 
-    state.colors.bind(state.colorAttribute, size, type, normalized, stride, offset);
+    state.colorBuffer.bind(state.colorAttribute, size, type, normalized, stride, offset);
     state.colorAttribute.enable();
 }
 
@@ -414,7 +414,7 @@ void main()
         if the user presses the P (perspective) or O (orthographic) keys.
         This will trigger a recalculation of the mvp matrix.
     */
-    auto onKeyDown =
+    auto onChangePerspective =
     (int key, int scanCode, int modifier)
     {
         switch (key)
@@ -432,16 +432,16 @@ void main()
     };
 
     // hook the callback
-    window.on_key_down.strongConnect(onKeyDown);
+    window.on_key_down.strongConnect(onChangePerspective);
 
     /**
-        Another keyboard callback that handles key repeats,
-        which will change the color values of our color buffer,
-        by increasing or decreasing the brightness.
+        Another keyboard callback that handles Up/Down keys,
+        which will change the color values of our color buffer.
+        This routine will increase or decrease the brightness.
         The buffer is then copied over to a GL buffer.
         This isn't efficient but it serves as an example.
     */
-    auto onKeyRepeat =
+    auto upDownHandler =
     (int key, int scanCode, int modifier)
     {
         float addColor = 0.0;
@@ -461,7 +461,7 @@ void main()
                 foreach (ref color; state.colorsArr)
                     color += addColor;
 
-                state.colors.write(state.colorsArr);
+                state.colorBuffer.write(state.colorsArr);
                 break;
             }
 
@@ -470,7 +470,8 @@ void main()
     };
 
     // hook the callback
-    window.on_key_repeat.strongConnect(onKeyRepeat);
+    window.on_key_down.strongConnect(upDownHandler);
+    window.on_key_repeat.strongConnect(upDownHandler);
 
     // enable z-buffer depth testing.
     glEnable(GL_DEPTH_TEST);

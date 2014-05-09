@@ -52,7 +52,7 @@ struct ProgramState
     /** Release all OpenGL resources. */
     ~this()
     {
-        vertices.release();
+        vertexBuffer.release();
 
         foreach (shader; shaders)
             shader.release();
@@ -90,7 +90,7 @@ private:
             0.0f,  1.0f, 0.0f,
         ];
 
-        this.vertices = new GLBuffer(positions, UsageHint.staticDraw);
+        this.vertexBuffer = new GLBuffer(positions, UsageHint.staticDraw);
     }
 
     void initShaders()
@@ -212,7 +212,7 @@ private:
     ProjectionType _projectionType = ProjectionType.perspective;
 
     // reference to a GPU buffer containing the vertices.
-    GLBuffer vertices;
+    GLBuffer vertexBuffer;
 
     // kept around for cleanup.
     Shader[] shaders;
@@ -250,7 +250,7 @@ void render(ref ProgramState state)
     enum bool normalized = false;
     enum int stride = 0;
     enum int offset = 0;
-    state.vertices.bind(state.positionAttribute, size, type, normalized, stride, offset);
+    state.vertexBuffer.bind(state.positionAttribute, size, type, normalized, stride, offset);
 
     state.positionAttribute.enable();
 
@@ -259,7 +259,7 @@ void render(ref ProgramState state)
     glDrawArrays(GL_TRIANGLES, startIndex, vertexCount);
 
     state.positionAttribute.disable();
-    state.vertices.unbind();
+    state.vertexBuffer.unbind();
     state.program.unbind();
 }
 
@@ -274,7 +274,7 @@ void main()
         if the user presses the P (perspective) or O (orthographic) keys.
         This will trigger a recalculation of the mvp matrix.
     */
-    auto onKeyDown =
+    auto onChangePerspective =
     (int key, int scanCode, int modifier)
     {
         switch (key)
@@ -292,7 +292,7 @@ void main()
     };
 
     // hook the callback
-    window.on_key_down.strongConnect(onKeyDown);
+    window.on_key_down.strongConnect(onChangePerspective);
 
     while (!glfwWindowShouldClose(window.window))
     {
