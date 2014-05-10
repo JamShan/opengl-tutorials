@@ -7,7 +7,7 @@ module tut_06_keyboard_mouse;
 
 /**
     D2 Port of:
-    http://www.opengl-tutorial.org/beginners-tutorials/tutorial-5-a-textured-cube/
+    http://www.opengl-tutorial.org/beginners-tutorials/tutorial-6-keyboard-and-mouse/
 */
 
 import deimos.glfw.glfw3;
@@ -59,6 +59,7 @@ struct ProgramState
         initShaders();
         initProgram();
         initAttributesUniforms();
+        updateInputControls();
         updateProjection();
         initVao();
     }
@@ -91,7 +92,7 @@ struct ProgramState
             return;
 
         _projectionType = newProjectionType;
-        updateProjection();
+        gameTick();
     }
 
     /// Get the current fov.
@@ -107,6 +108,13 @@ struct ProgramState
             return;
 
         _fov = newFov;
+        updateProjection();
+    }
+
+    /** Update all the game state. */
+    void gameTick()
+    {
+        updateInputControls();
         updateProjection();
     }
 
@@ -252,40 +260,18 @@ private:
         this.textureSamplerUniform = program.getUniform("textureSampler");
     }
 
-    mat4 getProjMatrix()
-    {
-        final switch (_projectionType) with (ProjectionType)
-        {
-            case orthographic:
-            {
-                float left = -10.0;
-                float right = 10.0;
-                float bottom = -10.0;
-                float top = 10.0;
-                float near = 0.0;
-                float far = 100.0;
-                return mat4.orthographic(left, right, bottom, top, near, far);
-            }
-
-            case perspective:
-            {
-                float near = 0.1f;
-                float far = 100.0f;
-
-                int width;
-                int height;
-                glfwGetWindowSize(window.window, &width, &height);
-                return mat4.perspective(width, height, _fov, near, far);
-            }
-        }
-    }
-
-    // the view (camera) matrix
-    mat4 getViewMatrix()
+    /**
+        Check the keyboard and mouse input state against the last game tick,
+        and update the camera position and view direction.
+    */
+    void updateInputControls()
     {
         // Compute time difference between current and last frame
         double currentTime = glfwGetTime();
         float deltaTime = cast(float)(currentTime - lastTime);
+
+        // For the next frame, the "last time" will be "now"
+        lastTime = currentTime;
 
         // Get mouse position
         double xpos, ypos;
@@ -298,11 +284,11 @@ private:
         xpos = max(-20, xpos).min(20);
         ypos = max(-20, ypos).min(20);
 
-        // Compute new orientation
+        // Compute the new orientation
         this.horizontalAngle -= this.mouseSpeed * cast(float)xpos;
         this.verticalAngle   -= this.mouseSpeed * cast(float)ypos;
 
-        // Direction : Spherical coordinates to Cartesian coordinates conversion
+        // Direction - Spherical coordinates to Cartesian coordinates conversion
         this.direction = vec3(
             cos(this.verticalAngle) * sin(this.horizontalAngle),
             sin(this.verticalAngle),
@@ -310,10 +296,10 @@ private:
         );
 
         // Right vector
-        vec3 right = vec3(
-            sin(this.horizontalAngle - 3.14f / 2.0f),
-            0,
-            cos(this.horizontalAngle - 3.14f / 2.0f)
+        this.right = vec3(
+            sin(this.horizontalAngle - 3.14f / 2.0f), // X
+            0,                                        // Y
+            cos(this.horizontalAngle - 3.14f / 2.0f)  // Z
         );
 
         alias KeyForward = GLFW_KEY_W;
@@ -383,17 +369,46 @@ private:
         {
             updateUVBuffer(vec2(0, deltaTime * -0.3));
         }
+    }
 
+    mat4 getProjMatrix()
+    {
+        final switch (_projectionType) with (ProjectionType)
+        {
+            case orthographic:
+            {
+                float left = -10.0;
+                float right = 10.0;
+                float bottom = -10.0;
+                float top = 10.0;
+                float near = 0.0;
+                float far = 100.0;
+                return mat4.orthographic(left, right, bottom, top, near, far);
+            }
+
+            case perspective:
+            {
+                float near = 0.1f;
+                float far = 100.0f;
+
+                int width;
+                int height;
+                glfwGetWindowSize(window.window, &width, &height);
+                return mat4.perspective(width, height, _fov, near, far);
+            }
+        }
+    }
+
+    // the view (camera) matrix
+    mat4 getViewMatrix()
+    {
         // Up vector
-        this.up = cross(right, this.direction);
-
-        // For the next frame, the "last time" will be "now"
-        lastTime = currentTime;
+        vec3 up = cross(this.right, this.direction);
 
         return mat4.look_at(
             position,              // Camera is here
-            position + direction,  // and looks here - at the same position, plus "direction"
-            up                     // Head is up (set to 0, -1, 0 to look upside-down)
+            position + direction,  // and looks here
+            up                     //
         );
     }
 
@@ -464,12 +479,16 @@ private:
         0.667979f, 1.0f - 0.335851f
     ];
 
+    // time since the last game tick
     double lastTime = 0;
 
-    // Initial position : on +Z
+    // camera position
     vec3 position = vec3(0, 0, 5);
+
+    // camera direction
     vec3 direction;
-    vec3 up;
+
+    vec3 right;
 
     // Initial horizontal angle : toward -Z
     float horizontalAngle = 3.14f;
@@ -673,9 +692,11 @@ void main()
     {
         /*
             We want to update the camera position (the matrix)
-            for every rendered image.
+            for every rendered image. Typically the game tick
+            is decoupled from the render tick, but for simplicity
+            we have a 1:1 match.
         */
-        state.updateProjection();
+        state.gameTick();
 
         /* Render to the back buffer. */
         render(state);
