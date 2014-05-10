@@ -92,7 +92,7 @@ struct ProgramState
             return;
 
         _projectionType = newProjectionType;
-        gameTick();
+        updateProjection();
     }
 
     /// Get the current fov.
