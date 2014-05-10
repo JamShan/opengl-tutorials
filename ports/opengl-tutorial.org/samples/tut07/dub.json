@@ -12,7 +12,6 @@
         "opengl-tutorial.org": {"path": "../../", "version": "~master"},
         "gltut-utility": {"path": "../../../../utility", "version": "~master"},
         "derelict-sdl2": "~master",
-        "derelict-assimp3": "~master",
         "gl3n": "~master",
         "glamour-drey": ">=0.0.2-alpha",
     },

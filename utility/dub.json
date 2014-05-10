@@ -7,6 +7,7 @@
         "glad-drey": ">=0.0.1",
         "glfw-drey": ">=0.0.2",
         "glwtf-drey": ">=0.0.1",
+        "gl3n": "~master",
     },
 
     "targetName": "gltut-utility",

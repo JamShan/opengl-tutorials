@@ -28,11 +28,9 @@ import gl3n.math;
 import derelict.sdl2.sdl;
 import derelict.sdl2.image;
 
-import derelict.assimp3.assimp;
-import derelict.assimp3.types;
-
 import glamour.texture;
 
+import gltut.model_loader;
 import gltut.utility;
 
 /// The type of projection we want to use.
@@ -56,9 +54,8 @@ struct ProgramState
         this.workDirPath = thisExePath.dirName.buildPath("..");
         this.lastTime = glfwGetTime();
 
-        initVertices();
-        initUV();
         initTextures();
+        initModels();
         initShaders();
         initProgram();
         initAttributesUniforms();
@@ -137,65 +134,28 @@ struct ProgramState
 
 private:
 
+    void initTextures()
+    {
+        string textPath = workDirPath.buildPath("textures/cube.png");
+        this.texture = Texture2D.from_image(textPath);
+    }
+
+    void initModels()
+    {
+        string modelPath = workDirPath.buildPath("models/cube.obj");
+        this.model = loadObjModel(modelPath);
+        initVertices();
+        initUV();
+    }
+
     void initVertices()
     {
-        // Our vertices. Three consecutive floats make a vertex (X, Y, Z).
-        // cube = 6 squares.
-        // square = 2 faces (2 triangles).
-        // triangle = 3 vertices.
-        // vertex = 3 floats.
-        const float[] positions =
-        [
-            -1.0f, -1.0f, -1.0f,  // triangle #1 begin
-            -1.0f, -1.0f,  1.0f,
-            -1.0f,  1.0f,  1.0f,  // triangle #1 end
-             1.0f,  1.0f, -1.0f,  // triangle #2 begin
-            -1.0f, -1.0f, -1.0f,
-            -1.0f,  1.0f, -1.0f,  // triangle #2 end
-             1.0f, -1.0f,  1.0f,  // etc..
-            -1.0f, -1.0f, -1.0f,
-             1.0f, -1.0f, -1.0f,
-             1.0f,  1.0f, -1.0f,
-             1.0f, -1.0f, -1.0f,
-            -1.0f, -1.0f, -1.0f,
-            -1.0f, -1.0f, -1.0f,
-            -1.0f,  1.0f,  1.0f,
-            -1.0f,  1.0f, -1.0f,
-             1.0f, -1.0f,  1.0f,
-            -1.0f, -1.0f,  1.0f,
-            -1.0f, -1.0f, -1.0f,
-            -1.0f,  1.0f,  1.0f,
-            -1.0f, -1.0f,  1.0f,
-             1.0f, -1.0f,  1.0f,
-             1.0f,  1.0f,  1.0f,
-             1.0f, -1.0f, -1.0f,
-             1.0f,  1.0f, -1.0f,
-             1.0f, -1.0f, -1.0f,
-             1.0f,  1.0f,  1.0f,
-             1.0f, -1.0f,  1.0f,
-             1.0f,  1.0f,  1.0f,
-             1.0f,  1.0f, -1.0f,
-            -1.0f,  1.0f, -1.0f,
-             1.0f,  1.0f,  1.0f,
-            -1.0f,  1.0f, -1.0f,
-            -1.0f,  1.0f,  1.0f,
-             1.0f,  1.0f,  1.0f,
-            -1.0f,  1.0f,  1.0f,
-             1.0f, -1.0f,  1.0f
-        ];
-
-        this.vertexBuffer = new GLBuffer(positions, UsageHint.staticDraw);
+        this.vertexBuffer = new GLBuffer(model.vertexArr, UsageHint.staticDraw);
     }
 
     void initUV()
     {
-        this.uvBuffer = new GLBuffer(uvArr, UsageHint.staticDraw);
-    }
-
-    void initTextures()
-    {
-        string textPath = workDirPath.buildPath("textures/uvtemplate.tga");
-        this.texture = Texture2D.from_image(textPath);
+        this.uvBuffer = new GLBuffer(model.uvArr, UsageHint.staticDraw);
     }
 
     void initShaders()
@@ -344,13 +304,13 @@ private:
 
         void updateUVBuffer(vec2 offset)
         {
-            foreach (ref uv; this.uvArr.chunks(2))
+            foreach (ref uv; model.uvArr)
             {
-                uv[0] += offset.x;
-                uv[1] += offset.y;
+                uv.x += offset.x;
+                uv.y += offset.y;
             }
 
-            this.uvBuffer.write(this.uvArr);
+            this.uvBuffer.write(model.uvArr);
         }
 
         if (window.is_key_down(GLFW_KEY_LEFT))
@@ -433,54 +393,7 @@ private:
         glBindVertexArray(vao);
     }
 
-    // Our UV coolrdinates.
-    // We keep this as an instance member because we're allowing
-    // modifications with a keyboard callback, which will re-copy
-    // the modified array into the GL buffer.
-    // This isn't efficient but it serves as an example.
-    float[] uvArr =
-    [
-        // Note: the '1.0f -' part is there in case the .tga image
-        // was already flipped. The texture loading routines in
-        // glamour may or may not flip the TGA vertically,
-        // based on the code path it takes.
-        0.000059f, 1.0f - 0.000004f,
-        0.000103f, 1.0f - 0.336048f,
-        0.335973f, 1.0f - 0.335903f,
-        1.000023f, 1.0f - 0.000013f,
-        0.667979f, 1.0f - 0.335851f,
-        0.999958f, 1.0f - 0.336064f,
-        0.667979f, 1.0f - 0.335851f,
-        0.336024f, 1.0f - 0.671877f,
-        0.667969f, 1.0f - 0.671889f,
-        1.000023f, 1.0f - 0.000013f,
-        0.668104f, 1.0f - 0.000013f,
-        0.667979f, 1.0f - 0.335851f,
-        0.000059f, 1.0f - 0.000004f,
-        0.335973f, 1.0f - 0.335903f,
-        0.336098f, 1.0f - 0.000071f,
-        0.667979f, 1.0f - 0.335851f,
-        0.335973f, 1.0f - 0.335903f,
-        0.336024f, 1.0f - 0.671877f,
-        1.000004f, 1.0f - 0.671847f,
-        0.999958f, 1.0f - 0.336064f,
-        0.667979f, 1.0f - 0.335851f,
-        0.668104f, 1.0f - 0.000013f,
-        0.335973f, 1.0f - 0.335903f,
-        0.667979f, 1.0f - 0.335851f,
-        0.335973f, 1.0f - 0.335903f,
-        0.668104f, 1.0f - 0.000013f,
-        0.336098f, 1.0f - 0.000071f,
-        0.000103f, 1.0f - 0.336048f,
-        0.000004f, 1.0f - 0.671870f,
-        0.336024f, 1.0f - 0.671877f,
-        0.000103f, 1.0f - 0.336048f,
-        0.336024f, 1.0f - 0.671877f,
-        0.335973f, 1.0f - 0.335903f,
-        0.667969f, 1.0f - 0.671889f,
-        1.000004f, 1.0f - 0.671847f,
-        0.667979f, 1.0f - 0.335851f
-    ];
+    Model model;
 
     // time since the last game tick
     double lastTime = 0;
@@ -570,10 +483,11 @@ void render(ref ProgramState state)
 
     enum startIndex = 0;
 
-    // cube = 6 squares.
-    // square = 2 faces (2 triangles).
-    // triangle = 3 vertices.
-    enum vertexCount = 6 * 2 * 3;
+    // note that unlike in previous tutorials 'vertexArr' here is of type vec3[],
+    // not float[]. Hence using .length here is appropriate. If you used a plain float[]
+    // where each vertex consists of 3 consecutive floats then you would have to divide
+    // the length by 3.
+    const vertexCount = state.model.vertexArr.length;
     glDrawArrays(GL_TRIANGLES, startIndex, vertexCount);
 
     state.texture.unbind();
@@ -673,9 +587,7 @@ void main()
 {
     loadDerelictSDL();
 
-    DerelictASSIMP3.load();
-
-    auto window = createWindow("Tutorial 06 - Keyboard & Mouse");
+    auto window = createWindow("Tutorial 07 - Model Loading");
 
     // hide the mouse cursor (even when not in client area).
     window.set_input_mode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
