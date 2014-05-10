@@ -306,8 +306,8 @@ private:
         {
             foreach (ref uv; model.uvArr)
             {
-                uv.x += offset.x;
-                uv.y += offset.y;
+                uv.x -= offset.x;
+                uv.y -= offset.y;
             }
 
             this.uvBuffer.write(model.uvArr);
