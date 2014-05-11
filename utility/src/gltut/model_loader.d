@@ -20,13 +20,25 @@ import std.string;
 
 import gl3n.linalg;
 
-import gltut.appender;
+import derelict.assimp3.assimp;
+import derelict.assimp3.types;
 
-///
+import gltut.appender;
+import gltut.model_indexer;
+
+/// A Model that should be drawn via glDrawArrays.
 struct Model
 {
     vec3[] vertexArr;
-    vec3[] indexArr;
+    vec2[] uvArr;
+    vec3[] normalArr;
+}
+
+/// A Model that should be drawn via glDrawElements, not glDrawArrays.
+struct IndexedModel
+{
+    ushort[] indexArr;
+    vec3[] vertexArr;
     vec2[] uvArr;
     vec3[] normalArr;
 }
@@ -124,9 +136,54 @@ Model loadObjModel(string path)
         // Put the attributes in the buffers
         result.vertexArr ~= vertex;
         result.uvArr ~= uv;
-        // result.indexArr ~= ??;  // not implemented for now
         result.normalArr ~= normal;
     }
 
     return result.data;
+}
+
+/**
+    Load a .obj model with Asset Import.
+    Asset Import will be lazily loaded if it's not loaded already.
+*/
+Model aiLoadObjModel(string path)
+{
+    if (!DerelictASSIMP3.isLoaded)
+        DerelictASSIMP3.load();
+
+    Model result;
+
+    auto scene = aiImportFile(path.toStringz, 0);
+    enforce(scene !is null, aiGetErrorString().to!string());
+    const aiMesh* mesh = scene.mMeshes[0];     // In this simple example code we always use the 1rst mesh (in OBJ files there is often only one anyway)
+
+    // Fill vertices positions
+    result.vertexArr.reserve(mesh.mNumVertices);
+
+    foreach (i; 0 .. mesh.mNumVertices)
+    {
+        aiVector3D pos = mesh.mVertices[i];
+        result.vertexArr ~= vec3(pos.x, pos.y, pos.z);
+    }
+
+    // Fill vertices texture coordinates
+    result.uvArr.reserve(mesh.mNumVertices);
+
+    foreach (i; 0 .. mesh.mNumVertices)
+    {
+        aiVector3D UVW = mesh.mTextureCoords[0][i]; // Assume only 1 set of UV coords; AssImp supports 8 UV sets.
+        result.uvArr ~= vec2(UVW.x, UVW.y);
+    }
+
+    // Fill vertices normals
+    result.normalArr.reserve(mesh.mNumVertices);
+
+    foreach (i; 0 .. mesh.mNumVertices)
+    {
+        aiVector3D n = mesh.mNormals[i];
+        result.normalArr ~= vec3(n.x, n.y, n.z);
+    }
+
+    // The "scene" pointer will be deleted automatically by "importer"
+    return result;
 }

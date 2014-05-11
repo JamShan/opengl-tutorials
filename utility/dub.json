@@ -8,6 +8,7 @@
         "glfw-drey": ">=0.0.2",
         "glwtf-drey": ">=0.0.1",
         "gl3n": "~master",
+        "derelict-assimp3": "~master",
     },
 
     "targetName": "gltut-utility",

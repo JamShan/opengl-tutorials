@@ -30,6 +30,7 @@ import derelict.sdl2.image;
 
 import glamour.texture;
 
+import gltut.model_indexer;
 import gltut.model_loader;
 import gltut.window;
 
@@ -67,6 +68,7 @@ struct ProgramState
     /** Release all OpenGL resources. */
     ~this()
     {
+        indexBuffer.release();
         vertexBuffer.release();
         uvBuffer.release();
         normalBuffer.release();
@@ -144,10 +146,17 @@ private:
     void initModels()
     {
         string modelPath = workDirPath.buildPath("models/suzanne.obj");
-        this.model = loadObjModel(modelPath);
+        this.model = aiLoadObjModel(modelPath).getIndexedModel();
+        initIndices();
         initVertices();
         initUV();
         initNormals();
+    }
+
+    void initIndices()
+    {
+        enforce(model.indexArr.length);
+        this.indexBuffer = new GLBuffer(model.indexArr, UsageHint.staticDraw);
     }
 
     void initVertices()
@@ -479,7 +488,8 @@ private:
         glBindVertexArray(vao);
     }
 
-    Model model;
+    // note: this is now an indexed model.
+    IndexedModel model;
 
     // time since the last game tick
     double lastTime = 0;
@@ -513,7 +523,10 @@ private:
     // Field of view (note that this was hardcoded in getProjMatrix in previous tutorials)
     float _fov = 45.0;
 
-    // reference to a GPU buffer containing the vertices.
+    // reference to a GPU buffer containing the indices.
+    GLBuffer indexBuffer;
+
+    // ditto, but containing vertices.
     GLBuffer vertexBuffer;
 
     // ditto, but containing UV coordinates.
@@ -593,13 +606,19 @@ void render(ref ProgramState state)
     glUniform3f(state.lightUniform.ID, lightPos.x, lightPos.y, lightPos.z);
 
     bindTexture(state);
+    bindIndices(state);
     bindPositionAttribute(state);
     bindUVAttribute(state);
     bindNormalAttribute(state);
 
-    enum startIndex = 0;
-    const vertexCount = state.model.vertexArr.length;
-    glDrawArrays(GL_TRIANGLES, startIndex, vertexCount);
+    // draw the triangles
+    const indexCount = state.model.indexArr.length;
+    glDrawElements(
+        GL_TRIANGLES,      // mode
+        indexCount,        // count
+        GL_UNSIGNED_SHORT, // type
+        null               // element array buffer offset
+    );
 
     state.texture.unbind();
 
@@ -612,6 +631,11 @@ void render(ref ProgramState state)
     state.normalBuffer.unbind();
 
     state.program.unbind();
+}
+
+void bindIndices(ref ProgramState state)
+{
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, state.indexBuffer.ID);
 }
 
 void bindPositionAttribute(ref ProgramState state)
@@ -713,7 +737,7 @@ void main()
 {
     loadDerelictSDL();
 
-    auto window = createWindow("Tutorial 08 - Basic Shading");
+    auto window = createWindow("Tutorial 09 - VBO Indexing");
 
     // hide the mouse cursor (even when not in client area).
     window.set_input_mode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -729,7 +753,7 @@ void main()
     glDepthFunc(GL_LESS);
 
     // cull triangles whose normal is not towards the camera.
-	glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
 
     while (!glfwWindowShouldClose(window.window))
     {

@@ -1,9 +1,10 @@
 /*
- *            Copyright (C) 2004 Sam Hocevar <sam@hocevar.net>
- *  Distributed under the WTFPL Public License, Version 2, December 2004
- *         (See license copy at http://www.wtfpl.net/txt/copying)
+ *             Copyright Andrej Mitrovic 2014.
+ *  Distributed under the Boost Software License, Version 1.0.
+ *     (See accompanying file LICENSE_1_0.txt or copy at
+ *           http://www.boost.org/LICENSE_1_0.txt)
  */
-module gltut.vbo_indexer;
+module gltut.model_indexer;
 
 /**
     Contains various helpers, common code, and initialization routines.
@@ -15,25 +16,18 @@ import std.math;
 import gl3n.linalg;
 
 import gltut.appender;
+import gltut.model_loader;
 
-///
-struct IndexedVBO
+/** Turn a model into an indexed model, which can be used with glDrawElements rather than glDrawArrays. */
+IndexedModel getIndexedModel(Model model)
 {
-    ushort[] indexArr;
-    vec3[] vertexArr;
-    vec2[] uvArr;
-    vec3[] normalArr;
-}
-
-IndexedVBO indexVBO(vec3[] in_vertices, vec2[] in_uvs, vec3[] in_normals)
-{
-    AppenderWrapper!IndexedVBO result;
+    AppenderWrapper!IndexedModel result;
     ushort[PackedVertex] VertexToOutIndex;
 
     // For each input vertex
-    for (uint i = 0; i < in_vertices.length; i++)
+    for (uint i = 0; i < model.vertexArr.length; i++)
     {
-        PackedVertex packed = { in_vertices[i], in_uvs[i], in_normals[i] };
+        PackedVertex packed = { model.vertexArr[i], model.uvArr[i], model.normalArr[i] };
 
         // Try to find a similar vertex in out_XXXX
         ushort index;
@@ -45,9 +39,9 @@ IndexedVBO indexVBO(vec3[] in_vertices, vec2[] in_uvs, vec3[] in_normals)
         }
         else           // If not, it needs to be added in the output data.
         {
-            result.vertexArr ~= in_vertices[i];
-            result.uvArr ~= in_uvs[i];
-            result.normalArr ~= in_normals[i];
+            result.vertexArr ~= model.vertexArr[i];
+            result.uvArr ~= model.uvArr[i];
+            result.normalArr ~= model.normalArr[i];
             ushort newindex = cast(ushort)(result.vertexArr.data.length - 1);
             result.indexArr ~= newindex;
             VertexToOutIndex[packed] = newindex;
