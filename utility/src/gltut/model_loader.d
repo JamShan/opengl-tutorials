@@ -19,7 +19,8 @@ import std.stdio;
 import std.string;
 
 import gl3n.linalg;
-import gl3n.math;
+
+import gltut.appender;
 
 ///
 struct Model
@@ -36,9 +37,9 @@ struct Model
 */
 Model loadObjModel(string path)
 {
-    Model result;
-
-    Appender!(uint[]) vertexIndices, uvIndices, normalIndices;
+    Appender!(uint[]) vertexIndices;
+    Appender!(uint[]) uvIndices;
+    Appender!(uint[]) normalIndices;
     Appender!(vec3[]) temp_vertices;
     Appender!(vec2[]) temp_uvs;
     Appender!(vec3[]) temp_normals;
@@ -105,10 +106,7 @@ Model loadObjModel(string path)
         }
     }
 
-    Appender!(vec3[]) vertexArr;
-    // Appender!(vec3[]) indexArr;  // not implemented for now
-    Appender!(vec2[]) uvArr;
-    Appender!(vec3[]) normalArr;
+    AppenderWrapper!Model result;
 
     // For each vertex of each triangle
     foreach (i; 0 .. vertexIndices.data.length)
@@ -124,14 +122,11 @@ Model loadObjModel(string path)
         vec3 normal = temp_normals.data[normalIndex - 1];
 
         // Put the attributes in the buffers
-        vertexArr ~= vertex;
-        uvArr ~= uv;
-        normalArr ~= normal;
+        result.vertexArr ~= vertex;
+        result.uvArr ~= uv;
+        // result.indexArr ~= ??;  // not implemented for now
+        result.normalArr ~= normal;
     }
 
-    result.vertexArr = vertexArr.data;
-    result.uvArr = uvArr.data;
-    result.normalArr = normalArr.data;
-
-    return result;
+    return result.data;
 }
