@@ -611,7 +611,9 @@ void render(ref ProgramState state)
     bindUVAttribute(state);
     bindNormalAttribute(state);
 
-    // draw the triangles
+    // note: we're no longer using glDrawArrays, but glDrawElements instead.
+    // the glDrawElements will use the indices which were last bound to
+    // the builtin GL_ELEMENT_ARRAY_BUFFER (see bindIndices).
     const indexCount = state.model.indexArr.length;
     glDrawElements(
         GL_TRIANGLES,      // mode
