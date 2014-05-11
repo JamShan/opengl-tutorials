@@ -1,0 +1,40 @@
+{
+    "name": "tut10",
+
+    "description": "tut10",
+
+    "authors": [
+        "Sam Hocevar",
+        "Andrej Mitrovic"
+    ],
+
+    "dependencies": {
+        "opengl-tutorial.org": {"path": "../../", "version": "~master"},
+        "gltut-utility": {"path": "../../../../utility", "version": "~master"},
+        "derelict-sdl2": "~master",
+        "gl3n": "~master",
+        "glamour-drey": ">=0.0.2-alpha",
+    },
+
+    "versions": [
+        "gl3n",
+        "glad",
+        "SDLImage2",
+    ],
+
+    "targetName" : "tut10",
+
+    "targetPath" : "../../bin",
+
+    "targetType": "executable",
+
+    "sourceFiles": ["tut_10_transparency.d"],
+
+    "mainSourceFile": "tut_10_transparency.d",
+
+    "homepage": "https://github.com/AndrejMitrovic/opengl-tutorials",
+
+    "copyright": "Copyright (C) 2004 Sam Hocevar <sam@hocevar.net>, Copyright © 2014, Andrej Mitrovic",
+
+    "license": "WTFPL Public Licence",
+}

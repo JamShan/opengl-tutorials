@@ -38,5 +38,6 @@
         "tutorials/08_basic_shading",
         "tutorials/09_vbo_indexing",
         "tutorials/09_vbo_indexing_multiobj",
+        "tutorials/10_transparency",
     ]
 }
