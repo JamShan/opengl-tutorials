@@ -69,6 +69,7 @@ struct ProgramState
     {
         vertexBuffer.release();
         uvBuffer.release();
+        normalBuffer.release();
         texture.remove();
 
         foreach (shader; shaders)
@@ -125,8 +126,8 @@ struct ProgramState
     void updateProjection()
     {
         auto projMatrix = getProjMatrix();
-        auto viewMatrix = getViewMatrix();
-        auto modelMatrix = getModelMatrix();
+        this.viewMatrix = getViewMatrix();
+        this.modelMatrix = getModelMatrix();
 
         // Remember that matrix multiplication is right-to-left.
         this.mvpMatrix = projMatrix * viewMatrix * modelMatrix;
@@ -136,26 +137,35 @@ private:
 
     void initTextures()
     {
-        string textPath = workDirPath.buildPath("textures/cube.png");
+        string textPath = workDirPath.buildPath("textures/suzanne_uvmap.png");
         this.texture = Texture2D.from_image(textPath);
     }
 
     void initModels()
     {
-        string modelPath = workDirPath.buildPath("models/cube.obj");
+        string modelPath = workDirPath.buildPath("models/suzanne.obj");
         this.model = loadObjModel(modelPath);
         initVertices();
         initUV();
+        initNormals();
     }
 
     void initVertices()
     {
+        enforce(model.vertexArr.length);
         this.vertexBuffer = new GLBuffer(model.vertexArr, UsageHint.staticDraw);
     }
 
     void initUV()
     {
+        enforce(model.uvArr.length);
         this.uvBuffer = new GLBuffer(model.uvArr, UsageHint.staticDraw);
+    }
+
+    void initNormals()
+    {
+        enforce(model.normalArr.length);
+        this.normalBuffer = new GLBuffer(model.normalArr, UsageHint.staticDraw);
     }
 
     void initShaders()
@@ -163,24 +173,47 @@ private:
         enum vertexShader = q{
             #version 330 core
 
-            // Input vertex data, different for all executions of this shader.
+            // input vertex data, different for all executions of this shader.
             layout(location = 0) in vec3 vertexPosition_modelspace;
-
-            // this is forwarded to the fragment shader.
             layout(location = 1) in vec2 vertexUV;
+            layout(location = 2) in vec3 vertexNormal_modelspace;
 
-            // forward
+            // output data will be interpolated for each fragment.
             out vec2 fragmentUV;
+            out vec3 positionWorldspace;
+            out vec3 normalCameraspace;
+            out vec3 eyeDirectionCameraspace;
+            out vec3 lightDirectionCameraspace;
 
-            // Values that stay constant for the whole mesh.
+            // uniform values stay constant for the entire execution of the shader.
             uniform mat4 mvpMatrix;
+            uniform mat4 viewMatrix;
+            uniform mat4 modelMatrix;
+            uniform vec3 lightPositionWorldspace;
 
             void main()
             {
-                // Output position of the vertex, in clip space : mvpMatrix * position
+                // output position of the vertex, in clip space - mvpMatrix * position
                 gl_Position = mvpMatrix * vec4(vertexPosition_modelspace, 1);
 
-                // forward to the fragment shader
+                // position of the vertex, in worldspace - modelMatrix * position
+                positionWorldspace = (modelMatrix * vec4(vertexPosition_modelspace, 1)).xyz;
+
+                // vector that goes from the vertex to the camera, in camera space.
+                // in camera space, the camera is at the origin (0,0,0).
+                vec3 vertexPositionCameraspace = (viewMatrix * modelMatrix * vec4(vertexPosition_modelspace, 1)).xyz;
+                eyeDirectionCameraspace = vec3(0, 0, 0) - vertexPositionCameraspace;
+
+                // vector that goes from the vertex to the light, in camera space.
+                // modelMatrix is ommited because it's the identity matrix.
+                vec3 lightPositionCameraspace = (viewMatrix * vec4(lightPositionWorldspace, 1)).xyz;
+                lightDirectionCameraspace = lightPositionCameraspace + eyeDirectionCameraspace;
+
+                // normal of the the vertex, in camera space
+                // Only correct if ModelMatrix does not scale the model ! Use its inverse transpose if not.
+                normalCameraspace = (viewMatrix * modelMatrix * vec4(vertexNormal_modelspace, 0)).xyz;
+
+                // fragmentUV of the vertex. No special space for this one.
                 fragmentUV = vertexUV;
             }
         };
@@ -188,20 +221,69 @@ private:
         enum fragmentShader = q{
             #version 330 core
 
-            // interpolated values from the vertex shader
+            // interpolated values from the vertex shaders.
             in vec2 fragmentUV;
+            in vec3 positionWorldspace;
+            in vec3 normalCameraspace;
+            in vec3 eyeDirectionCameraspace;
+            in vec3 lightDirectionCameraspace;
 
-            // output
+            // ouput color.
             out vec3 color;
 
-            // this is our constant texture. It's constant throughout the running of the program,
-            // but can be changed between each run.
+            // uniform values stay constant for the entire execution of the shader.
             uniform sampler2D textureSampler;
+            uniform vec3 lightPositionWorldspace;
 
             void main()
             {
-                // we pick one of the pixels in the texture based on the 2D coordinate value of fragmentUV.
-                color = texture(textureSampler, fragmentUV).rgb;
+                // light emission properties.
+                // you probably want to put them as uniforms.
+                vec3 lightColor = vec3(1, 1, 1);
+                float lightPower = 50.0f;
+
+                // material properties.
+                vec3 materialDiffuseColor  = texture2D(textureSampler, fragmentUV).rgb;
+                vec3 materialAmbientColor  = vec3(0.1, 0.1, 0.1) * materialDiffuseColor;
+                vec3 materialSpecularColor = vec3(0.3, 0.3, 0.3);
+
+                // distance to the light.
+                float distance = length(lightPositionWorldspace - positionWorldspace);
+
+                // normal of the computed fragment, in camera space.
+                vec3 n = normalize(normalCameraspace);
+
+                // direction of the light (from the fragment to the light).
+                vec3 l = normalize(lightDirectionCameraspace);
+
+                // cosine of the angle between the normal and the light direction,
+                // clamped above 0
+                // - light is at the vertical of the triangle -> 1
+                // - light is perpendicular to the triangle -> 0
+                // - light is behind the triangle -> 0
+                float cosTheta = clamp(dot(n, l), 0, 1);
+
+                // eye vector (towards the camera)
+                vec3 E = normalize(eyeDirectionCameraspace);
+
+                // direction in which the triangle reflects the light
+                vec3 R = reflect(-l, n);
+
+                // cosine of the angle between the Eye vector and the Reflect vector,
+                // clamped to 0
+                // - Looking into the reflection => 1
+                // - Looking elsewhere => < 1
+                float cosAlpha = clamp(dot(E, R), 0, 1);
+
+                color =
+                    // ambient - simulates indirect lighting
+                    materialAmbientColor +
+
+                    // diffuse - the color of the object
+                    materialDiffuseColor * lightColor * lightPower * cosTheta / (distance * distance) +
+
+                    // specular - reflective highlight, like a mirror
+                    materialSpecularColor * lightColor * lightPower * pow(cosAlpha, 5) / (distance * distance);
             }
         };
 
@@ -218,9 +300,13 @@ private:
     {
         this.positionAttribute = program.getAttribute("vertexPosition_modelspace");
         this.uvAttribute = program.getAttribute("vertexUV");
+        this.normalAttribute = program.getAttribute("vertexNormal_modelspace");
 
         this.mvpUniform = program.getUniform("mvpMatrix");
+        this.modelMatrixUniform = program.getUniform("modelMatrix");
+        this.viewMatrixUniform = program.getUniform("viewMatrix");
         this.textureSamplerUniform = program.getUniform("textureSampler");
+        this.lightUniform = program.getUniform("lightPositionWorldspace");
     }
 
     /**
@@ -406,10 +492,10 @@ private:
 
     vec3 right;
 
-    // Initial horizontal angle : toward -Z
+    // Initial horizontal angle - toward -Z
     float horizontalAngle = 3.14f;
 
-    // Initial vertical angle : none
+    // Initial vertical angle - none
     float verticalAngle = 0.0f;
 
     // Initial Field of View
@@ -433,6 +519,9 @@ private:
     // ditto, but containing UV coordinates.
     GLBuffer uvBuffer;
 
+    // ditto for normals
+    GLBuffer normalBuffer;
+
     // the texture we're going to use for the cube.
     Texture2D texture;
 
@@ -448,14 +537,32 @@ private:
     // ditto for the UV coordinates.
     Attribute uvAttribute;
 
+    // ditto for the normals.
+    Attribute normalAttribute;
+
     // The uniform (location) of the matrix in the shader.
     Uniform mvpUniform;
 
-    // Ditto for the texture sampler.
+    // ditto for the texture sampler.
     Uniform textureSamplerUniform;
+
+    // ditto for the model matrix.
+    Uniform modelMatrixUniform;
+
+    // ditto for the view matrix.
+    Uniform viewMatrixUniform;
+
+    // ditto for the light.
+    Uniform lightUniform;
 
     // The currently calculated matrix.
     mat4 mvpMatrix;
+
+    // ditto for the model matrix.
+    mat4 modelMatrix;
+
+    // ditto for the view matrix.
+    mat4 viewMatrix;
 
 private:
     // root path where the 'textures' and 'bin' folders can be found.
@@ -475,11 +582,19 @@ void render(ref ProgramState state)
     // unlike the C++ glm library.
     enum doTranspose = GL_TRUE;
     enum matrixCount = 1;
+
     glUniformMatrix4fv(state.mvpUniform.ID, matrixCount, doTranspose, &state.mvpMatrix[0][0]);
+    glUniformMatrix4fv(state.modelMatrixUniform.ID, matrixCount, doTranspose, &state.modelMatrix[0][0]);
+    glUniformMatrix4fv(state.viewMatrixUniform.ID, matrixCount, doTranspose, &state.viewMatrix[0][0]);
+
+    // set the light
+    vec3 lightPos = vec3(4, 4, 4);
+    glUniform3f(state.lightUniform.ID, lightPos.x, lightPos.y, lightPos.z);
 
     bindTexture(state);
     bindPositionAttribute(state);
     bindUVAttribute(state);
+    bindNormalAttribute(state);
 
     enum startIndex = 0;
 
@@ -493,10 +608,12 @@ void render(ref ProgramState state)
     state.texture.unbind();
 
     state.positionAttribute.disable();
-    state.vertexBuffer.unbind();
-
     state.uvAttribute.disable();
+    state.normalAttribute.disable();
+
+    state.vertexBuffer.unbind();
     state.uvBuffer.unbind();
+    state.normalBuffer.unbind();
 
     state.program.unbind();
 }
@@ -528,6 +645,19 @@ void bindUVAttribute(ref ProgramState state)
 
     state.uvBuffer.bind(state.uvAttribute, size, type, normalized, stride, offset);
     state.uvAttribute.enable();
+}
+
+void bindNormalAttribute(ref ProgramState state)
+{
+    // Normals are vectors and have (X, Y, Z)
+    enum int size = 3;
+    enum GLenum type = GL_FLOAT;
+    enum bool normalized = false;
+    enum int stride = 0;
+    enum int offset = 0;
+
+    state.normalBuffer.bind(state.normalAttribute, size, type, normalized, stride, offset);
+    state.normalAttribute.enable();
 }
 
 void bindTexture(ref ProgramState state)
@@ -587,7 +717,7 @@ void main()
 {
     loadDerelictSDL();
 
-    auto window = createWindow("Tutorial 07 - Model Loading");
+    auto window = createWindow("Tutorial 08 - Basic Shading");
 
     // hide the mouse cursor (even when not in client area).
     window.set_input_mode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
