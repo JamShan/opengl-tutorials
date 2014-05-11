@@ -10,6 +10,7 @@ module gltut.model_loader;
     Contains a very minimal implementation of a .obj model loader.
 */
 
+import std.array;
 import std.conv;
 import std.exception;
 import std.file;
@@ -37,10 +38,10 @@ Model loadObjModel(string path)
 {
     Model result;
 
-    uint[] vertexIndices, uvIndices, normalIndices;
-    vec3[] temp_vertices;
-    vec2[] temp_uvs;
-    vec3[] temp_normals;
+    Appender!(uint[]) vertexIndices, uvIndices, normalIndices;
+    Appender!(vec3[]) temp_vertices;
+    Appender!(vec2[]) temp_uvs;
+    Appender!(vec3[]) temp_normals;
 
     enforce(path.exists);
     enforce(path.extension == ".obj");
@@ -104,24 +105,33 @@ Model loadObjModel(string path)
         }
     }
 
+    Appender!(vec3[]) vertexArr;
+    // Appender!(vec3[]) indexArr;  // not implemented for now
+    Appender!(vec2[]) uvArr;
+    Appender!(vec3[]) normalArr;
+
     // For each vertex of each triangle
-    foreach (i; 0 .. vertexIndices.length)
+    foreach (i; 0 .. vertexIndices.data.length)
     {
         // Get the indices of its attributes
-        uint vertexIndex = vertexIndices[i];
-        uint uvIndex     = uvIndices[i];
-        uint normalIndex = normalIndices[i];
+        uint vertexIndex = vertexIndices.data[i];
+        uint uvIndex     = uvIndices.data[i];
+        uint normalIndex = normalIndices.data[i];
 
         // Get the attributes thanks to the index
-        vec3 vertex = temp_vertices[vertexIndex - 1];
-        vec2 uv     = temp_uvs[uvIndex - 1];
-        vec3 normal = temp_normals[normalIndex - 1];
+        vec3 vertex = temp_vertices.data[vertexIndex - 1];
+        vec2 uv     = temp_uvs.data[uvIndex - 1];
+        vec3 normal = temp_normals.data[normalIndex - 1];
 
         // Put the attributes in the buffers
-        result.vertexArr ~= vertex;
-        result.uvArr ~= uv;
-        result.normalArr ~= normal;
+        vertexArr ~= vertex;
+        uvArr ~= uv;
+        normalArr ~= normal;
     }
+
+    result.vertexArr = vertexArr.data;
+    result.uvArr = uvArr.data;
+    result.normalArr = normalArr.data;
 
     return result;
 }
