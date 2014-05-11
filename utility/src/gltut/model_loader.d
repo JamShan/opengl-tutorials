@@ -34,7 +34,7 @@ struct Model
     vec3[] normalArr;
 }
 
-/// A Model that should be drawn via glDrawElements, not glDrawArrays.
+/// A Model that should be drawn via glDrawElements.
 struct IndexedModel
 {
     ushort[] indexArr;
@@ -44,8 +44,7 @@ struct IndexedModel
 }
 
 /**
-    Load a .obj model. It doesn't use VBO indexing,
-    but instead converts everything into triangles.
+    Load a .obj model.
 */
 Model loadObjModel(string path)
 {
@@ -143,8 +142,9 @@ Model loadObjModel(string path)
 }
 
 /**
-    Load a .obj model with Asset Import.
-    Asset Import will be lazily loaded if it's not loaded already.
+    Load a .obj model with AssetImport.
+    AssetImport will be lazily loaded if
+    it's not loaded already.
 */
 Model aiLoadObjModel(string path)
 {

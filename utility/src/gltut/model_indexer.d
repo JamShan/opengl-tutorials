@@ -7,8 +7,11 @@
 module gltut.model_indexer;
 
 /**
-    Contains various helpers, common code, and initialization routines.
- */
+    Contains a converter from a Model to an IndexedModel.
+
+    This code was adapted from Sam Hocevar.
+    Copyright (C) 2004 Sam Hocevar <sam@hocevar.net>
+*/
 
 import std.array;
 import std.math;
@@ -33,11 +36,11 @@ IndexedModel getIndexedModel(Model model)
         ushort index;
         bool found = getSimilarVertexIndex_fast(packed, VertexToOutIndex, index);
 
-        if (found)            // A similar vertex is already in the VBO, use it instead !
+        if (found) // A similar vertex is already in the VBO, use it instead
         {
             result.indexArr ~= index;
         }
-        else           // If not, it needs to be added in the output data.
+        else // If not, it needs to be added in the output data.
         {
             result.vertexArr ~= model.vertexArr[i];
             result.uvArr ~= model.uvArr[i];
@@ -144,16 +147,14 @@ private bool getSimilarVertexIndex(
     // Lame linear search
     for (uint i = 0; i < out_vertices.length; i++)
     {
-        if (
-            is_near(in_vertex.x, out_vertices[i].x) &&
+        if (is_near(in_vertex.x, out_vertices[i].x) &&
             is_near(in_vertex.y, out_vertices[i].y) &&
             is_near(in_vertex.z, out_vertices[i].z) &&
             is_near(in_uv.x, out_uvs     [i].x) &&
             is_near(in_uv.y, out_uvs     [i].y) &&
             is_near(in_normal.x, out_normals [i].x) &&
             is_near(in_normal.y, out_normals [i].y) &&
-            is_near(in_normal.z, out_normals [i].z)
-            )
+            is_near(in_normal.z, out_normals [i].z))
         {
             result = cast(ushort)i;
             return true;
@@ -171,7 +172,6 @@ struct PackedVertex
     vec2 uv;
     vec3 normal;
 }
-
 
 private bool getSimilarVertexIndex_fast(
     ref PackedVertex packed,
