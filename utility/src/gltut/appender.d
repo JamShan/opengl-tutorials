@@ -49,6 +49,7 @@ unittest
         vec3[] indices;
         vec3[] vertices;
         vec3[] normals;
+        int other;
     }
 
     Model loadModel(string path)
@@ -60,6 +61,7 @@ unittest
         result.indices ~= vector;
         result.vertices ~= vector;
         result.normals ~= vector;
+        result.other = 1;
 
         return result.data;
     }
