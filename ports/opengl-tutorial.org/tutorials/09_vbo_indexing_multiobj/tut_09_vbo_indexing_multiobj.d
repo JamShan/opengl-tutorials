@@ -8,6 +8,17 @@ module tut_09_vbo_indexing_multiobj;
 /**
     D2 Port of:
     http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-9-vbo-indexing/
+
+    Active key / mouse bindings:
+
+    1      => Toggle ambient light.
+    2      => Toggle diffuse light.
+    3      => Toggle specular light.
+    WASD   => Move camera around.
+    Arrows => Shift the UV Map around.
+    P      => Change projection to perspective mode.
+    O      => Change projection to ortograpic mode.
+    Esc    => Exit.
 */
 
 import deimos.glfw.glfw3;
