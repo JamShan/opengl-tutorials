@@ -21,7 +21,10 @@ import gl3n.linalg;
 import gltut.appender;
 import gltut.model_loader;
 
-/** Turn a model into an indexed model, which can be used with glDrawElements rather than glDrawArrays. */
+/**
+    Turn a model into an indexed model, which can be used with
+    glDrawElements rather than glDrawArrays.
+*/
 IndexedModel getIndexedModel(Model model)
 {
     AppenderWrapper!IndexedModel result;
