@@ -50,7 +50,7 @@ enum WindowMode
     Create a window, an OpenGL 3.x context, and set up some other
     common routines for error handling, window resizing, etc.
 */
-Window createWindow(string windowName, WindowMode windowMode = WindowMode.windowed, int width = 640, int height = 480)
+Window createWindow(string windowName, WindowMode windowMode = WindowMode.windowed, int width = 1024, int height = 768)
 {
     auto vidMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
