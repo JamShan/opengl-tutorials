@@ -500,7 +500,7 @@ private:
     float initialFoV = 45.0f;
 
     float speed      = 3.0f; // 3 units / second
-    float mouseSpeed = 0.005f;
+    float mouseSpeed = 0.002f;
 
     // We need the window size to calculate the projection matrix.
     Window window;
