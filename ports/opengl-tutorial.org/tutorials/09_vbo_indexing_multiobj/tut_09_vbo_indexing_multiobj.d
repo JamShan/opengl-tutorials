@@ -82,6 +82,15 @@ struct ProgramState
         glfwTerminate();
     }
 
+    /// Toggle ambient light.
+    public bool useAmbientLight = true;
+
+    /// Toggle diffuse light.
+    public bool useDiffuseLight = true;
+
+    /// Toggle specular light.
+    public bool useSpecularLight = true;
+
     /// Get the projection type.
     @property ProjectionType projectionType()
     {
@@ -207,7 +216,12 @@ private:
         this.modelMatrixUniform = program.getUniform("modelMatrix");
         this.viewMatrixUniform = program.getUniform("viewMatrix");
         this.textureSamplerUniform = program.getUniform("textureSampler");
+
         this.lightUniform = program.getUniform("lightPositionWorldspace");
+
+        this.useAmbientLightUniform = program.getUniform("useAmbientLight");
+        this.useDiffuseLightUniform = program.getUniform("useDiffuseLight");
+        this.useSpecularLightUniform = program.getUniform("useSpecularLight");
     }
 
     /**
@@ -460,6 +474,11 @@ private:
     // ditto for the light.
     Uniform lightUniform;
 
+    // ditto for the light settings.
+    Uniform useAmbientLightUniform;
+    Uniform useDiffuseLightUniform;
+    Uniform useSpecularLightUniform;
+
     // The currently calculated matrix.
     mat4 mvpMatrix;
 
@@ -539,6 +558,10 @@ enum fragmentShader = q{
     uniform sampler2D textureSampler;
     uniform vec3 lightPositionWorldspace;
 
+    uniform bool useAmbientLight;
+    uniform bool useDiffuseLight;
+    uniform bool useSpecularLight;
+
     void main()
     {
         // light emission properties.
@@ -581,13 +604,13 @@ enum fragmentShader = q{
 
         color =
             // ambient - simulates indirect lighting
-            materialAmbientColor +
+            (useAmbientLight ? materialAmbientColor : vec3(0)) +
 
             // diffuse - the color of the object
-            materialDiffuseColor * lightColor * lightPower * cosTheta / (distance * distance) +
+            (useDiffuseLight ? (materialDiffuseColor * lightColor * lightPower * cosTheta / (distance * distance)) : vec3(0)) +
 
             // specular - reflective highlight, like a mirror
-            materialSpecularColor * lightColor * lightPower * pow(cosAlpha, 5) / (distance * distance);
+            (useSpecularLight ? (materialSpecularColor * lightColor * lightPower * pow(cosAlpha, 5) / (distance * distance)) : vec3(0));
     }
 };
 
@@ -628,6 +651,11 @@ void renderImpl(ref ProgramState state)
     // set the light
     vec3 lightPos = vec3(4, 4, 4);
     glUniform3f(state.lightUniform.ID, lightPos.x, lightPos.y, lightPos.z);
+
+    // set the light settings
+    glUniform1i(state.useAmbientLightUniform.ID, state.useAmbientLight);
+    glUniform1i(state.useDiffuseLightUniform.ID, state.useDiffuseLight);
+    glUniform1i(state.useSpecularLightUniform.ID, state.useSpecularLight);
 
     bindTexture(state);
     bindIndices(state);
@@ -723,6 +751,9 @@ void hookCallbacks(Window window, ref ProgramState state)
         We're using a keyboard callback that will update the projection type
         if the user presses the P (perspective) or O (orthographic) keys.
         This will trigger a recalculation of the mvp matrix.
+
+        Additionally, the 1 / 2 / 3 keys will toggle the ambient, diffuse, and
+        specular lighting models.
     */
     auto onChangePerspective =
     (int key, int scanCode, int modifier)
@@ -735,6 +766,18 @@ void hookCallbacks(Window window, ref ProgramState state)
 
             case GLFW_KEY_O:
                 state.projectionType = ProjectionType.orthographic;
+                break;
+
+            case GLFW_KEY_1:
+                state.useAmbientLight ^= 1;
+                break;
+
+            case GLFW_KEY_2:
+                state.useDiffuseLight ^= 1;
+                break;
+
+            case GLFW_KEY_3:
+                state.useSpecularLight ^= 1;
                 break;
 
             default:
