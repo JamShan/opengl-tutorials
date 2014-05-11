@@ -188,123 +188,6 @@ private:
 
     void initShaders()
     {
-        enum vertexShader = q{
-            #version 330 core
-
-            // input vertex data, different for all executions of this shader.
-            layout(location = 0) in vec3 vertexPosition_modelspace;
-            layout(location = 1) in vec2 vertexUV;
-            layout(location = 2) in vec3 vertexNormal_modelspace;
-
-            // output data will be interpolated for each fragment.
-            out vec2 fragmentUV;
-            out vec3 positionWorldspace;
-            out vec3 normalCameraspace;
-            out vec3 eyeDirectionCameraspace;
-            out vec3 lightDirectionCameraspace;
-
-            // uniform values stay constant for the entire execution of the shader.
-            uniform mat4 mvpMatrix;
-            uniform mat4 viewMatrix;
-            uniform mat4 modelMatrix;
-            uniform vec3 lightPositionWorldspace;
-
-            void main()
-            {
-                // output position of the vertex, in clip space - mvpMatrix * position
-                gl_Position = mvpMatrix * vec4(vertexPosition_modelspace, 1);
-
-                // position of the vertex, in worldspace - modelMatrix * position
-                positionWorldspace = (modelMatrix * vec4(vertexPosition_modelspace, 1)).xyz;
-
-                // vector that goes from the vertex to the camera, in camera space.
-                // in camera space, the camera is at the origin (0,0,0).
-                vec3 vertexPositionCameraspace = (viewMatrix * modelMatrix * vec4(vertexPosition_modelspace, 1)).xyz;
-                eyeDirectionCameraspace = vec3(0, 0, 0) - vertexPositionCameraspace;
-
-                // vector that goes from the vertex to the light, in camera space.
-                // modelMatrix is ommited because it's the identity matrix.
-                vec3 lightPositionCameraspace = (viewMatrix * vec4(lightPositionWorldspace, 1)).xyz;
-                lightDirectionCameraspace = lightPositionCameraspace + eyeDirectionCameraspace;
-
-                // normal of the the vertex, in camera space
-                // Only correct if ModelMatrix does not scale the model ! Use its inverse transpose if not.
-                normalCameraspace = (viewMatrix * modelMatrix * vec4(vertexNormal_modelspace, 0)).xyz;
-
-                // fragmentUV of the vertex. No special space for this one.
-                fragmentUV = vertexUV;
-            }
-        };
-
-        enum fragmentShader = q{
-            #version 330 core
-
-            // interpolated values from the vertex shaders.
-            in vec2 fragmentUV;
-            in vec3 positionWorldspace;
-            in vec3 normalCameraspace;
-            in vec3 eyeDirectionCameraspace;
-            in vec3 lightDirectionCameraspace;
-
-            // ouput color.
-            out vec3 color;
-
-            // uniform values stay constant for the entire execution of the shader.
-            uniform sampler2D textureSampler;
-            uniform vec3 lightPositionWorldspace;
-
-            void main()
-            {
-                // light emission properties.
-                // you probably want to put them as uniforms.
-                vec3 lightColor = vec3(1, 1, 1);
-                float lightPower = 50.0f;
-
-                // material properties.
-                vec3 materialDiffuseColor  = texture2D(textureSampler, fragmentUV).rgb;
-                vec3 materialAmbientColor  = vec3(0.1, 0.1, 0.1) * materialDiffuseColor;
-                vec3 materialSpecularColor = vec3(0.3, 0.3, 0.3);
-
-                // distance to the light.
-                float distance = length(lightPositionWorldspace - positionWorldspace);
-
-                // normal of the computed fragment, in camera space.
-                vec3 n = normalize(normalCameraspace);
-
-                // direction of the light (from the fragment to the light).
-                vec3 l = normalize(lightDirectionCameraspace);
-
-                // cosine of the angle between the normal and the light direction,
-                // clamped above 0
-                // - light is at the vertical of the triangle -> 1
-                // - light is perpendicular to the triangle -> 0
-                // - light is behind the triangle -> 0
-                float cosTheta = clamp(dot(n, l), 0, 1);
-
-                // eye vector (towards the camera)
-                vec3 E = normalize(eyeDirectionCameraspace);
-
-                // direction in which the triangle reflects the light
-                vec3 R = reflect(-l, n);
-
-                // cosine of the angle between the Eye vector and the Reflect vector,
-                // clamped to 0
-                // - Looking into the reflection => 1
-                // - Looking elsewhere => < 1
-                float cosAlpha = clamp(dot(E, R), 0, 1);
-
-                color =
-                    // ambient - simulates indirect lighting
-                    materialAmbientColor +
-
-                    // diffuse - the color of the object
-                    materialDiffuseColor * lightColor * lightPower * cosTheta / (distance * distance) +
-
-                    // specular - reflective highlight, like a mirror
-                    materialSpecularColor * lightColor * lightPower * pow(cosAlpha, 5) / (distance * distance);
-            }
-        };
-
         this.shaders ~= Shader.fromText(ShaderType.vertex, vertexShader);
         this.shaders ~= Shader.fromText(ShaderType.fragment, fragmentShader);
     }
@@ -590,6 +473,123 @@ private:
     // root path where the 'textures' and 'bin' folders can be found.
     const string workDirPath;
 }
+
+enum vertexShader = q{
+    #version 330 core
+
+    // input vertex data, different for all executions of this shader.
+    layout(location = 0) in vec3 vertexPosition_modelspace;
+    layout(location = 1) in vec2 vertexUV;
+    layout(location = 2) in vec3 vertexNormal_modelspace;
+
+    // output data will be interpolated for each fragment.
+    out vec2 fragmentUV;
+    out vec3 positionWorldspace;
+    out vec3 normalCameraspace;
+    out vec3 eyeDirectionCameraspace;
+    out vec3 lightDirectionCameraspace;
+
+    // uniform values stay constant for the entire execution of the shader.
+    uniform mat4 mvpMatrix;
+    uniform mat4 viewMatrix;
+    uniform mat4 modelMatrix;
+    uniform vec3 lightPositionWorldspace;
+
+    void main()
+    {
+        // output position of the vertex, in clip space - mvpMatrix * position
+        gl_Position = mvpMatrix * vec4(vertexPosition_modelspace, 1);
+
+        // position of the vertex, in worldspace - modelMatrix * position
+        positionWorldspace = (modelMatrix * vec4(vertexPosition_modelspace, 1)).xyz;
+
+        // vector that goes from the vertex to the camera, in camera space.
+        // in camera space, the camera is at the origin (0,0,0).
+        vec3 vertexPositionCameraspace = (viewMatrix * modelMatrix * vec4(vertexPosition_modelspace, 1)).xyz;
+        eyeDirectionCameraspace = vec3(0, 0, 0) - vertexPositionCameraspace;
+
+        // vector that goes from the vertex to the light, in camera space.
+        // modelMatrix is ommited because it's the identity matrix.
+        vec3 lightPositionCameraspace = (viewMatrix * vec4(lightPositionWorldspace, 1)).xyz;
+        lightDirectionCameraspace = lightPositionCameraspace + eyeDirectionCameraspace;
+
+        // normal of the the vertex, in camera space
+        // Only correct if ModelMatrix does not scale the model ! Use its inverse transpose if not.
+        normalCameraspace = (viewMatrix * modelMatrix * vec4(vertexNormal_modelspace, 0)).xyz;
+
+        // fragmentUV of the vertex. No special space for this one.
+        fragmentUV = vertexUV;
+    }
+};
+
+enum fragmentShader = q{
+    #version 330 core
+
+    // interpolated values from the vertex shaders.
+    in vec2 fragmentUV;
+    in vec3 positionWorldspace;
+    in vec3 normalCameraspace;
+    in vec3 eyeDirectionCameraspace;
+    in vec3 lightDirectionCameraspace;
+
+    // ouput color.
+    out vec3 color;
+
+    // uniform values stay constant for the entire execution of the shader.
+    uniform sampler2D textureSampler;
+    uniform vec3 lightPositionWorldspace;
+
+    void main()
+    {
+        // light emission properties.
+        // you probably want to put them as uniforms.
+        vec3 lightColor = vec3(1, 1, 1);
+        float lightPower = 50.0f;
+
+        // material properties.
+        vec3 materialDiffuseColor  = texture2D(textureSampler, fragmentUV).rgb;
+        vec3 materialAmbientColor  = vec3(0.1, 0.1, 0.1) * materialDiffuseColor;
+        vec3 materialSpecularColor = vec3(0.3, 0.3, 0.3);
+
+        // distance to the light.
+        float distance = length(lightPositionWorldspace - positionWorldspace);
+
+        // normal of the computed fragment, in camera space.
+        vec3 n = normalize(normalCameraspace);
+
+        // direction of the light (from the fragment to the light).
+        vec3 l = normalize(lightDirectionCameraspace);
+
+        // cosine of the angle between the normal and the light direction,
+        // clamped above 0
+        // - light is at the vertical of the triangle -> 1
+        // - light is perpendicular to the triangle -> 0
+        // - light is behind the triangle -> 0
+        float cosTheta = clamp(dot(n, l), 0, 1);
+
+        // eye vector (towards the camera)
+        vec3 E = normalize(eyeDirectionCameraspace);
+
+        // direction in which the triangle reflects the light
+        vec3 R = reflect(-l, n);
+
+        // cosine of the angle between the Eye vector and the Reflect vector,
+        // clamped to 0
+        // - Looking into the reflection => 1
+        // - Looking elsewhere => < 1
+        float cosAlpha = clamp(dot(E, R), 0, 1);
+
+        color =
+            // ambient - simulates indirect lighting
+            materialAmbientColor +
+
+            // diffuse - the color of the object
+            materialDiffuseColor * lightColor * lightPower * cosTheta / (distance * distance) +
+
+            // specular - reflective highlight, like a mirror
+            materialSpecularColor * lightColor * lightPower * pow(cosAlpha, 5) / (distance * distance);
+    }
+};
 
 /** Our main render routine. */
 void render(ref ProgramState state)
