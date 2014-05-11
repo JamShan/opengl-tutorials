@@ -27,24 +27,6 @@ $ cd tutorials/01_window
 $ dub
 ```
 
-## Tutorial Reading Guide
-
-Since this is a D port many things can be ignored in the original tutorial.
-You won't have to worry about setting up a build environment or have to manually
-install dependencies. Simply use [dub] to build and run any sample.
-
-The following is a list of chapter-specific guides for D developers.
-
-### Tutorial 1 : Opening a window
-
-Tutorial link:
-http://www.opengl-tutorial.org/beginners-tutorials/tutorial-1-opening-a-window/
-
-This chapter can largely be ignored, you won't have to set up a complex build environment.
-
-Note about GLEW: This library isn't used, instead we're using [glad] to load all OpenGL function pointers,
-including any extensions.
-
 ## License
 
 Unless noted otherwise, samples are distributed under the [WTFPL Public License][WTFPL_License], Version 2, December 2004.
