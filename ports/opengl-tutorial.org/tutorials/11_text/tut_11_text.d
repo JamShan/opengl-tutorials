@@ -3,16 +3,29 @@
  *  Distributed under the WTFPL Public License, Version 2, December 2004
  *         (See license copy at http://www.wtfpl.net/txt/copying)
  */
-module tut_08_basic_shading;
+module tut_11_text;
 
 /**
     D2 Port of:
-    http://www.opengl-tutorial.org/beginners-tutorials/tutorial-8-basic-shading/
+    http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-11-2d-text/
+
+    Active key / mouse bindings:
+
+    1      => Toggle ambient light.
+    2      => Toggle diffuse light.
+    3      => Toggle specular light.
+    + -    => Increase or decrease the alpha value.
+    WASD   => Move camera around.
+    Arrows => Shift the UV Map around.
+    P      => Change projection to perspective mode.
+    O      => Change projection to ortograpic mode.
+    Esc    => Exit.
 */
 
 import std.file : thisExePath;
 import std.path : buildPath, dirName;
 import std.range : chunks;
+import std.string;
 
 import deimos.glfw.glfw3;
 
@@ -30,7 +43,9 @@ import derelict.sdl2.image;
 
 import glamour.texture;
 
+import gltut.model_indexer;
 import gltut.model_loader;
+import gltut.text;
 import gltut.window;
 
 /// The type of projection we want to use.
@@ -54,6 +69,9 @@ struct ProgramState
         this.workDirPath = thisExePath.dirName.buildPath("..");
         this.lastTime = glfwGetTime();
 
+        string fontTextPath = workDirPath.buildPath("textures").buildPath("Holstein.tga");
+        this.textRenderer = TextRenderer(window, fontTextPath);
+
         initTextures();
         initModels();
         initShaders();
@@ -67,6 +85,7 @@ struct ProgramState
     /** Release all OpenGL resources. */
     ~this()
     {
+        indexBuffer.release();
         vertexBuffer.release();
         uvBuffer.release();
         normalBuffer.release();
@@ -77,8 +96,22 @@ struct ProgramState
 
         program.release();
 
+        textRenderer.release();
+
         glfwTerminate();
     }
+
+    /// Toggle ambient light.
+    public bool useAmbientLight = true;
+
+    /// Toggle diffuse light.
+    public bool useDiffuseLight = true;
+
+    /// Toggle specular light.
+    public bool useSpecularLight = true;
+
+    /// The alpha value.
+    public float colorAlpha = 1.0;
 
     /// Get the projection type.
     @property ProjectionType projectionType()
@@ -125,15 +158,24 @@ struct ProgramState
     */
     void updateProjection()
     {
-        auto projMatrix = getProjMatrix();
+        updateViewMatrix();
+        updateMvpMatrix();
+    }
+
+private:
+
+    void updateViewMatrix()
+    {
         this.viewMatrix = getViewMatrix();
-        this.modelMatrix = getModelMatrix();
+    }
+
+    void updateMvpMatrix()
+    {
+        auto projMatrix = getProjMatrix();
 
         // Remember that matrix multiplication is right-to-left.
         this.mvpMatrix = projMatrix * viewMatrix * modelMatrix;
     }
-
-private:
 
     void initTextures()
     {
@@ -144,10 +186,17 @@ private:
     void initModels()
     {
         string modelPath = workDirPath.buildPath("models/suzanne.obj");
-        this.model = loadObjModel(modelPath);
+        this.model = aiLoadObjModel(modelPath).getIndexedModel();
+        initIndices();
         initVertices();
         initUV();
         initNormals();
+    }
+
+    void initIndices()
+    {
+        enforce(model.indexArr.length);
+        this.indexBuffer = new GLBuffer(model.indexArr, UsageHint.staticDraw);
     }
 
     void initVertices()
@@ -170,123 +219,6 @@ private:
 
     void initShaders()
     {
-        enum vertexShader = q{
-            #version 330 core
-
-            // input vertex data, different for all executions of this shader.
-            layout(location = 0) in vec3 vertexPosition_modelspace;
-            layout(location = 1) in vec2 vertexUV;
-            layout(location = 2) in vec3 vertexNormal_modelspace;
-
-            // output data will be interpolated for each fragment.
-            out vec2 fragmentUV;
-            out vec3 positionWorldspace;
-            out vec3 normalCameraspace;
-            out vec3 eyeDirectionCameraspace;
-            out vec3 lightDirectionCameraspace;
-
-            // uniform values stay constant for the entire execution of the shader.
-            uniform mat4 mvpMatrix;
-            uniform mat4 viewMatrix;
-            uniform mat4 modelMatrix;
-            uniform vec3 lightPositionWorldspace;
-
-            void main()
-            {
-                // output position of the vertex, in clip space - mvpMatrix * position
-                gl_Position = mvpMatrix * vec4(vertexPosition_modelspace, 1);
-
-                // position of the vertex, in worldspace - modelMatrix * position
-                positionWorldspace = (modelMatrix * vec4(vertexPosition_modelspace, 1)).xyz;
-
-                // vector that goes from the vertex to the camera, in camera space.
-                // in camera space, the camera is at the origin (0,0,0).
-                vec3 vertexPositionCameraspace = (viewMatrix * modelMatrix * vec4(vertexPosition_modelspace, 1)).xyz;
-                eyeDirectionCameraspace = vec3(0, 0, 0) - vertexPositionCameraspace;
-
-                // vector that goes from the vertex to the light, in camera space.
-                // modelMatrix is ommited because it's the identity matrix.
-                vec3 lightPositionCameraspace = (viewMatrix * vec4(lightPositionWorldspace, 1)).xyz;
-                lightDirectionCameraspace = lightPositionCameraspace + eyeDirectionCameraspace;
-
-                // normal of the the vertex, in camera space
-                // Only correct if ModelMatrix does not scale the model ! Use its inverse transpose if not.
-                normalCameraspace = (viewMatrix * modelMatrix * vec4(vertexNormal_modelspace, 0)).xyz;
-
-                // fragmentUV of the vertex. No special space for this one.
-                fragmentUV = vertexUV;
-            }
-        };
-
-        enum fragmentShader = q{
-            #version 330 core
-
-            // interpolated values from the vertex shaders.
-            in vec2 fragmentUV;
-            in vec3 positionWorldspace;
-            in vec3 normalCameraspace;
-            in vec3 eyeDirectionCameraspace;
-            in vec3 lightDirectionCameraspace;
-
-            // ouput color.
-            out vec3 color;
-
-            // uniform values stay constant for the entire execution of the shader.
-            uniform sampler2D textureSampler;
-            uniform vec3 lightPositionWorldspace;
-
-            void main()
-            {
-                // light emission properties.
-                // you probably want to put them as uniforms.
-                vec3 lightColor = vec3(1, 1, 1);
-                float lightPower = 50.0f;
-
-                // material properties.
-                vec3 materialDiffuseColor  = texture2D(textureSampler, fragmentUV).rgb;
-                vec3 materialAmbientColor  = vec3(0.1, 0.1, 0.1) * materialDiffuseColor;
-                vec3 materialSpecularColor = vec3(0.3, 0.3, 0.3);
-
-                // distance to the light.
-                float distance = length(lightPositionWorldspace - positionWorldspace);
-
-                // normal of the computed fragment, in camera space.
-                vec3 n = normalize(normalCameraspace);
-
-                // direction of the light (from the fragment to the light).
-                vec3 l = normalize(lightDirectionCameraspace);
-
-                // cosine of the angle between the normal and the light direction,
-                // clamped above 0
-                // - light is at the vertical of the triangle -> 1
-                // - light is perpendicular to the triangle -> 0
-                // - light is behind the triangle -> 0
-                float cosTheta = clamp(dot(n, l), 0, 1);
-
-                // eye vector (towards the camera)
-                vec3 E = normalize(eyeDirectionCameraspace);
-
-                // direction in which the triangle reflects the light
-                vec3 R = reflect(-l, n);
-
-                // cosine of the angle between the Eye vector and the Reflect vector,
-                // clamped to 0
-                // - Looking into the reflection => 1
-                // - Looking elsewhere => < 1
-                float cosAlpha = clamp(dot(E, R), 0, 1);
-
-                color =
-                    // ambient - simulates indirect lighting
-                    materialAmbientColor +
-
-                    // diffuse - the color of the object
-                    materialDiffuseColor * lightColor * lightPower * cosTheta / (distance * distance) +
-
-                    // specular - reflective highlight, like a mirror
-                    materialSpecularColor * lightColor * lightPower * pow(cosAlpha, 5) / (distance * distance);
-            }
-        };
-
         this.shaders ~= Shader.fromText(ShaderType.vertex, vertexShader);
         this.shaders ~= Shader.fromText(ShaderType.fragment, fragmentShader);
     }
@@ -306,7 +238,13 @@ private:
         this.modelMatrixUniform = program.getUniform("modelMatrix");
         this.viewMatrixUniform = program.getUniform("viewMatrix");
         this.textureSamplerUniform = program.getUniform("textureSampler");
+
         this.lightUniform = program.getUniform("lightPositionWorldspace");
+
+        this.useAmbientLightUniform = program.getUniform("useAmbientLight");
+        this.useDiffuseLightUniform = program.getUniform("useDiffuseLight");
+        this.useSpecularLightUniform = program.getUniform("useSpecularLight");
+        this.colorAlphaUniform = program.getUniform("colorAlpha");
     }
 
     /**
@@ -351,12 +289,29 @@ private:
             cos(this.horizontalAngle - 3.14f / 2.0f)  // Z
         );
 
+
         alias KeyForward = GLFW_KEY_W;
         alias KeyBackward = GLFW_KEY_S;
         alias KeyStrafeLeft = GLFW_KEY_A;
         alias KeyStrafeRight = GLFW_KEY_D;
         alias KeyClimb = GLFW_KEY_SPACE;
         alias KeySink = GLFW_KEY_LEFT_SHIFT;
+
+        if (window.is_key_down(GLFW_KEY_MINUS) ||
+            window.is_key_down(GLFW_KEY_KP_SUBTRACT))
+        {
+            this.colorAlpha -= deltaTime * 0.4;
+        }
+
+        if (window.is_key_down(GLFW_KEY_EQUAL) ||
+            window.is_key_down(GLFW_KEY_KP_ADD))
+        {
+            // note: normally we wouldn't use just 'equal' but also
+            // check the shift modifier. glwtf doesn't expose this currently,
+            // although glfw does. Note however that we've already mapped the
+            // shift key to do something else.
+            this.colorAlpha += deltaTime * 0.4;
+        }
 
         if (window.is_key_down(KeyForward))
         {
@@ -461,13 +416,6 @@ private:
         );
     }
 
-    //
-    mat4 getModelMatrix()
-    {
-        // an identity matrix - the model will be at the origin.
-        return mat4.identity();
-    }
-
     void initVao()
     {
         // Note: this must be called when using the core profile,
@@ -479,13 +427,14 @@ private:
         glBindVertexArray(vao);
     }
 
-    Model model;
+    // note: this is now an indexed model.
+    IndexedModel model;
 
     // time since the last game tick
     double lastTime = 0;
 
     // camera position
-    vec3 position = vec3(0, 0, 5);
+    vec3 position = vec3(0, 0, 6);
 
     // camera direction
     vec3 direction;
@@ -501,7 +450,7 @@ private:
     // Initial Field of View
     float initialFoV = 45.0f;
 
-    float speed      = 3.0f; // 3 units / second
+    float speed = 3.0f; // 3 units / second
     float mouseSpeed = 0.003f;
 
     // We need the window size to calculate the projection matrix.
@@ -513,7 +462,10 @@ private:
     // Field of view (note that this was hardcoded in getProjMatrix in previous tutorials)
     float _fov = 45.0;
 
-    // reference to a GPU buffer containing the vertices.
+    // reference to a GPU buffer containing the indices.
+    GLBuffer indexBuffer;
+
+    // ditto, but containing vertices.
     GLBuffer vertexBuffer;
 
     // ditto, but containing UV coordinates.
@@ -555,19 +507,154 @@ private:
     // ditto for the light.
     Uniform lightUniform;
 
+    // ditto for the light settings.
+    Uniform useAmbientLightUniform;
+    Uniform useDiffuseLightUniform;
+    Uniform useSpecularLightUniform;
+
+    // ditto for the alpha.
+    Uniform colorAlphaUniform;
+
     // The currently calculated matrix.
     mat4 mvpMatrix;
 
     // ditto for the model matrix.
-    mat4 modelMatrix;
+    mat4 modelMatrix = mat4.identity();
 
     // ditto for the view matrix.
     mat4 viewMatrix;
+
+    TextRenderer textRenderer;
 
 private:
     // root path where the 'textures' and 'bin' folders can be found.
     const string workDirPath;
 }
+
+enum vertexShader = q{
+    #version 330 core
+
+    // input vertex data, different for all executions of this shader.
+    layout(location = 0) in vec3 vertexPosition_modelspace;
+    layout(location = 1) in vec2 vertexUV;
+    layout(location = 2) in vec3 vertexNormal_modelspace;
+
+    // output data will be interpolated for each fragment.
+    out vec2 fragmentUV;
+    out vec3 positionWorldspace;
+    out vec3 normalCameraspace;
+    out vec3 eyeDirectionCameraspace;
+    out vec3 lightDirectionCameraspace;
+
+    // uniform values stay constant for the entire execution of the shader.
+    uniform mat4 mvpMatrix;
+    uniform mat4 viewMatrix;
+    uniform mat4 modelMatrix;
+    uniform vec3 lightPositionWorldspace;
+
+    void main()
+    {
+        // output position of the vertex, in clip space - mvpMatrix * position
+        gl_Position = mvpMatrix * vec4(vertexPosition_modelspace, 1);
+
+        // position of the vertex, in worldspace - modelMatrix * position
+        positionWorldspace = (modelMatrix * vec4(vertexPosition_modelspace, 1)).xyz;
+
+        // vector that goes from the vertex to the camera, in camera space.
+        // in camera space, the camera is at the origin (0,0,0).
+        vec3 vertexPositionCameraspace = (viewMatrix * modelMatrix * vec4(vertexPosition_modelspace, 1)).xyz;
+        eyeDirectionCameraspace = vec3(0, 0, 0) - vertexPositionCameraspace;
+
+        // vector that goes from the vertex to the light, in camera space.
+        // modelMatrix is ommited because it's the identity matrix.
+        vec3 lightPositionCameraspace = (viewMatrix * vec4(lightPositionWorldspace, 1)).xyz;
+        lightDirectionCameraspace = lightPositionCameraspace + eyeDirectionCameraspace;
+
+        // normal of the the vertex, in camera space
+        // Only correct if ModelMatrix does not scale the model ! Use its inverse transpose if not.
+        normalCameraspace = (viewMatrix * modelMatrix * vec4(vertexNormal_modelspace, 0)).xyz;
+
+        // fragmentUV of the vertex. No special space for this one.
+        fragmentUV = vertexUV;
+    }
+};
+
+enum fragmentShader = q{
+    #version 330 core
+
+    // interpolated values from the vertex shaders.
+    in vec2 fragmentUV;
+    in vec3 positionWorldspace;
+    in vec3 normalCameraspace;
+    in vec3 eyeDirectionCameraspace;
+    in vec3 lightDirectionCameraspace;
+
+    // ouput color.
+    out vec4 color;
+
+    // uniform values stay constant for the entire execution of the shader.
+    uniform sampler2D textureSampler;
+    uniform vec3 lightPositionWorldspace;
+
+    uniform bool useAmbientLight;
+    uniform bool useDiffuseLight;
+    uniform bool useSpecularLight;
+
+    uniform float colorAlpha;
+
+    void main()
+    {
+        // light emission properties.
+        // you probably want to put them as uniforms.
+        vec3 lightColor = vec3(1, 1, 1);
+        float lightPower = 50.0f;
+
+        // material properties.
+        vec3 materialDiffuseColor  = texture2D(textureSampler, fragmentUV).rgb;
+        vec3 materialAmbientColor  = vec3(0.1, 0.1, 0.1) * materialDiffuseColor;
+        vec3 materialSpecularColor = vec3(0.3, 0.3, 0.3);
+
+        // distance to the light.
+        float distance = length(lightPositionWorldspace - positionWorldspace);
+
+        // normal of the computed fragment, in camera space.
+        vec3 n = normalize(normalCameraspace);
+
+        // direction of the light (from the fragment to the light).
+        vec3 l = normalize(lightDirectionCameraspace);
+
+        // cosine of the angle between the normal and the light direction,
+        // clamped above 0
+        // - light is at the vertical of the triangle -> 1
+        // - light is perpendicular to the triangle -> 0
+        // - light is behind the triangle -> 0
+        float cosTheta = clamp(dot(n, l), 0, 1);
+
+        // eye vector (towards the camera)
+        vec3 E = normalize(eyeDirectionCameraspace);
+
+        // direction in which the triangle reflects the light
+        vec3 R = reflect(-l, n);
+
+        // cosine of the angle between the Eye vector and the Reflect vector,
+        // clamped to 0
+        // - Looking into the reflection => 1
+        // - Looking elsewhere => < 1
+        float cosAlpha = clamp(dot(E, R), 0, 1);
+
+        color.rgb =
+            // ambient - simulates indirect lighting
+            (useAmbientLight ? materialAmbientColor : vec3(0)) +
+
+            // diffuse - the color of the object
+            (useDiffuseLight ? (materialDiffuseColor * lightColor * lightPower * cosTheta / (distance * distance)) : vec3(0)) +
+
+            // specular - reflective highlight, like a mirror
+            (useSpecularLight ? (materialSpecularColor * lightColor * lightPower * pow(cosAlpha, 5) / (distance * distance)) : vec3(0));
+
+        color.a = colorAlpha;
+    }
+};
 
 /** Our main render routine. */
 void render(ref ProgramState state)
@@ -577,6 +664,21 @@ void render(ref ProgramState state)
 
     state.program.bind();
 
+    // render one instance of the object at this position.
+    state.modelMatrix = mat4.identity().translate(-1.5, 0, 0);
+    state.updateProjection();
+    renderImpl(state);
+
+    // render another one at a different position.
+    state.modelMatrix = mat4.identity().translate(1.5, 0, 0);
+    state.updateProjection();
+    renderImpl(state);
+
+    state.program.unbind();
+}
+
+void renderImpl(ref ProgramState state)
+{
     // set this to true when converting matrices from row-major order
     // to column-major order. Note that gl3n uses row-major ordering,
     // unlike the C++ glm library.
@@ -592,14 +694,30 @@ void render(ref ProgramState state)
     vec3 lightPos = vec3(4, 4, 4);
     glUniform3f(state.lightUniform.ID, lightPos.x, lightPos.y, lightPos.z);
 
+    // set the light settings
+    glUniform1i(state.useAmbientLightUniform.ID, state.useAmbientLight);
+    glUniform1i(state.useDiffuseLightUniform.ID, state.useDiffuseLight);
+    glUniform1i(state.useSpecularLightUniform.ID, state.useSpecularLight);
+
+    // set the alpha
+    glUniform1f(state.colorAlphaUniform.ID, state.colorAlpha);
+
     bindTexture(state);
+    bindIndices(state);
     bindPositionAttribute(state);
     bindUVAttribute(state);
     bindNormalAttribute(state);
 
-    enum startIndex = 0;
-    const vertexCount = state.model.vertexArr.length;
-    glDrawArrays(GL_TRIANGLES, startIndex, vertexCount);
+    // note: we're no longer using glDrawArrays, but glDrawElements instead.
+    // the glDrawElements will use the indices which were last bound to
+    // the builtin GL_ELEMENT_ARRAY_BUFFER (see bindIndices).
+    const indexCount = state.model.indexArr.length;
+    glDrawElements(
+        GL_TRIANGLES,      // mode
+        indexCount,        // count
+        GL_UNSIGNED_SHORT, // type
+        null               // element array buffer offset
+    );
 
     state.texture.unbind();
 
@@ -610,8 +728,11 @@ void render(ref ProgramState state)
     state.vertexBuffer.unbind();
     state.uvBuffer.unbind();
     state.normalBuffer.unbind();
+}
 
-    state.program.unbind();
+void bindIndices(ref ProgramState state)
+{
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, state.indexBuffer.ID);
 }
 
 void bindPositionAttribute(ref ProgramState state)
@@ -675,6 +796,9 @@ void hookCallbacks(Window window, ref ProgramState state)
         We're using a keyboard callback that will update the projection type
         if the user presses the P (perspective) or O (orthographic) keys.
         This will trigger a recalculation of the mvp matrix.
+
+        Additionally, the 1 / 2 / 3 keys will toggle the ambient, diffuse, and
+        specular lighting models.
     */
     auto onChangePerspective =
     (int key, int scanCode, int modifier)
@@ -687,6 +811,18 @@ void hookCallbacks(Window window, ref ProgramState state)
 
             case GLFW_KEY_O:
                 state.projectionType = ProjectionType.orthographic;
+                break;
+
+            case GLFW_KEY_1:
+                state.useAmbientLight ^= 1;
+                break;
+
+            case GLFW_KEY_2:
+                state.useDiffuseLight ^= 1;
+                break;
+
+            case GLFW_KEY_3:
+                state.useSpecularLight ^= 1;
                 break;
 
             default:
@@ -713,7 +849,7 @@ void main()
 {
     loadDerelictSDL();
 
-    auto window = createWindow("Tutorial 08 - Basic Shading");
+    auto window = createWindow("Tutorial 11 - Text");
 
     // hide the mouse cursor (even when not in client area).
     window.set_input_mode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -728,11 +864,44 @@ void main()
     // accept fragment if it is closer to the camera than another one.
     glDepthFunc(GL_LESS);
 
-    // cull triangles whose normal is not towards the camera.
-	glEnable(GL_CULL_FACE);
+    // we don't want to cull triangles whose normal is not towards the camera,
+    // because if the object is transparent we want to see the back of the face.
+	glDisable(GL_CULL_FACE);
+
+    // Enable blending
+    glEnable(GL_BLEND);
+
+    /*
+    New color in framebuffer =
+           current alpha in framebuffer * current color in framebuffer +
+           (1 - current alpha in framebuffer) * shader's output color
+
+    Example from the image above, with red on top :
+
+        // (the red was already blended with the white background)
+        new color = 0.5*(0,1,0) + (1-0.5)*(1,0.5,0.5);
+        new color = (1, 0.75, 0.25) // the same orange
+    */
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    version (DisplayFrameRate)
+    {
+        import std.datetime;
+        auto sw = StopWatch(AutoStart.yes);
+        char[] text = "Benchmarking..".dup;  // initial text
+        char[256] textBuffer;
+    }
+
+    size_t frameCount;
 
     while (!glfwWindowShouldClose(window.window))
     {
+        version (DisplayFrameRate)
+        {
+            // Enable blending (we have to do this on every cycle due to the text routine disabling it).
+            glEnable(GL_BLEND);
+        }
+
         /*
             We want to update the camera position (the matrix)
             for every rendered image. Typically the game tick
@@ -743,6 +912,26 @@ void main()
 
         /* Render to the back buffer. */
         render(state);
+
+        version (DisplayFrameRate)
+        {
+            frameCount++;
+
+            // update the text at a certain rate.
+            // if (sw.peek >= 1.seconds)
+            if (sw.peek.msecs >= 1000)
+            {
+                text = sformat(textBuffer, "%.3s msecs per frame.", 1000.0 / cast(double)frameCount);
+                frameCount = 0;
+                sw.reset();
+            }
+
+            /* display the time taken to render a frame. */
+            const xOffset = 20;
+            const yOffset = 20;
+            const size = 30;
+            state.textRenderer.render(text, xOffset, yOffset, size);
+        }
 
         /* Swap front and back buffers. */
         window.swap_buffers();

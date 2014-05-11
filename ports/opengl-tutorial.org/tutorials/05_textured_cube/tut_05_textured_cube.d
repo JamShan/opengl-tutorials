@@ -10,11 +10,11 @@ module tut_05_textured_cube;
     http://www.opengl-tutorial.org/beginners-tutorials/tutorial-5-a-textured-cube/
 */
 
-import deimos.glfw.glfw3;
-
 import std.file : thisExePath;
 import std.path : buildPath, dirName;
 import std.range : chunks;
+
+import deimos.glfw.glfw3;
 
 import glwtf.window;
 
@@ -431,10 +431,6 @@ void bindPositionAttribute(ref ProgramState state)
 
 void bindUVAttribute(ref ProgramState state)
 {
-    // set our texture sampler to use Texture Unit 0
-    enum textureUnit = 0;
-    state.program.setUniform1i(state.textureSamplerUniform, textureUnit);
-
     // (u, v) per vertex
     enum int size = 2;
     enum GLenum type = GL_FLOAT;
@@ -448,6 +444,10 @@ void bindUVAttribute(ref ProgramState state)
 
 void bindTexture(ref ProgramState state)
 {
+    // set our texture sampler to use Texture Unit 0
+    enum textureUnit = 0;
+    state.program.setUniform1i(state.textureSamplerUniform, textureUnit);
+
     state.texture.activate();
     state.texture.bind();
 }
@@ -511,7 +511,7 @@ void main()
                 uv[1] += offset.y;
             }
 
-            state.uvBuffer.write(state.uvArr);
+            state.uvBuffer.overwrite(state.uvArr);
         }
 
         switch (key)

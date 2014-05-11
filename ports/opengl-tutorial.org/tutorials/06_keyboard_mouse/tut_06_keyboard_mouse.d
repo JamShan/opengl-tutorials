@@ -10,11 +10,11 @@ module tut_06_keyboard_mouse;
     http://www.opengl-tutorial.org/beginners-tutorials/tutorial-6-keyboard-and-mouse/
 */
 
-import deimos.glfw.glfw3;
-
 import std.file : thisExePath;
 import std.path : buildPath, dirName;
 import std.range : chunks;
+
+import deimos.glfw.glfw3;
 
 import glwtf.window;
 
@@ -347,7 +347,7 @@ private:
                 uv[1] += offset.y;
             }
 
-            this.uvBuffer.write(this.uvArr);
+            this.uvBuffer.overwrite(this.uvArr);
         }
 
         if (window.is_key_down(GLFW_KEY_LEFT))
@@ -598,10 +598,6 @@ void bindPositionAttribute(ref ProgramState state)
 
 void bindUVAttribute(ref ProgramState state)
 {
-    // set our texture sampler to use Texture Unit 0
-    enum textureUnit = 0;
-    state.program.setUniform1i(state.textureSamplerUniform, textureUnit);
-
     // (u, v) per vertex
     enum int size = 2;
     enum GLenum type = GL_FLOAT;
@@ -615,6 +611,10 @@ void bindUVAttribute(ref ProgramState state)
 
 void bindTexture(ref ProgramState state)
 {
+    // set our texture sampler to use Texture Unit 0
+    enum textureUnit = 0;
+    state.program.setUniform1i(state.textureSamplerUniform, textureUnit);
+
     state.texture.activate();
     state.texture.bind();
 }

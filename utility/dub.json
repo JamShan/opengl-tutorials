@@ -9,7 +9,15 @@
         "glwtf-drey": ">=0.0.1",
         "gl3n": "~master",
         "derelict-assimp3": "~master",
+        "glamour-drey": ">=0.0.2-alpha",
+        "dgl": ">=0.0.5",
     },
+
+    "versions": [
+        "gl3n",
+        "glad",
+        "SDLImage2",
+    ],
 
     "targetName": "gltut-utility",
 

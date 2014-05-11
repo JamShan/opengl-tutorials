@@ -461,7 +461,7 @@ void main()
                 foreach (ref color; state.colorsArr)
                     color += addColor;
 
-                state.colorBuffer.write(state.colorsArr);
+                state.colorBuffer.overwrite(state.colorsArr);
                 break;
             }
 
