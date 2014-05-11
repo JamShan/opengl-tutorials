@@ -4,15 +4,17 @@ The [opengl-tutorial.org] project is a set of C++ tutorials covering OpenGL v3.3
 
 The included D [port][opengl-tutorial-port] contains all of the code samples which have been ported into D.
 
-[opengl-tutorial.org]: http://www.opengl-tutorial.org/
-[opengl-tutorial-port]: https://github.com/AndrejMitrovic/opengl-tutorials/tree/master/ports/opengl-tutorial.org
+## Dependencies
 
-## Requirements
+You will need to install the following shared libraries:
 
-You will need to install the [glfw] shared library.
-Make sure it's in your `PATH` environment variable,
-or alternatively copy the [glfw] shared library to the `bin`
-folder where the samples are built.
+- [glfw3]
+- [SDL2]
+- [SDL2 Image]
+- [Assimp]
+
+Make sure the shared libraries binaries are available in your `PATH` environment variable,
+or alternatively copy the binaries to the `bin` folder where the samples are built.
 
 ## Building the samples
 
@@ -31,6 +33,11 @@ $ dub
 
 Unless noted otherwise, samples are distributed under the [WTFPL Public License][WTFPL_License], Version 2, December 2004.
 
+[opengl-tutorial.org]: http://www.opengl-tutorial.org
+[opengl-tutorial-port]: https://github.com/AndrejMitrovic/opengl-tutorials/tree/master/ports/opengl-tutorial.org
 [dub]: http://code.dlang.org/download
 [WTFPL_License]: http://www.wtfpl.net/txt/copying
-[glad]: https://github.com/Dav1dde/glad
+[glfw3]: http://www.glfw.org
+[SDL2]: http://www.libsdl.org
+[SDL2 Image]: https://www.libsdl.org/projects/SDL_image
+[assimp]: http://assimp.sourceforge.net
