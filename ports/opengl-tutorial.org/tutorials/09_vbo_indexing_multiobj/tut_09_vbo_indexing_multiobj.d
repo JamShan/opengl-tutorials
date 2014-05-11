@@ -761,7 +761,7 @@ void main()
 {
     loadDerelictSDL();
 
-    auto window = createWindow("Tutorial 09 - VBO Indexing");
+    auto window = createWindow("Tutorial 09 - VBO Indexing Multiobj");
 
     // hide the mouse cursor (even when not in client area).
     window.set_input_mode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
