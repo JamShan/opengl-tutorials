@@ -387,13 +387,6 @@ private:
         );
     }
 
-    //
-    mat4 getModelMatrix()
-    {
-        // an identity matrix - the model will be at the origin.
-        return mat4.identity();
-    }
-
     void initVao()
     {
         // Note: this must be called when using the core profile,
