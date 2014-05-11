@@ -289,7 +289,6 @@ private:
             cos(this.horizontalAngle - 3.14f / 2.0f)  // Z
         );
 
-
         alias KeyForward = GLFW_KEY_W;
         alias KeyBackward = GLFW_KEY_S;
         alias KeyStrafeLeft = GLFW_KEY_A;
