@@ -28,14 +28,14 @@
     "license": "WTFPL Public Licence",
 
     "subPackages": [
-        "samples/tut01",
-        "samples/tut02",
-        "samples/tut03",
-        "samples/tut04",
-        "samples/tut05",
-        "samples/tut06",
-        "samples/tut07",
-        "samples/tut08",
-        "samples/tut09",
+        "tutorials/tut01",
+        "tutorials/tut02",
+        "tutorials/tut03",
+        "tutorials/tut04",
+        "tutorials/tut05",
+        "tutorials/tut06",
+        "tutorials/tut07",
+        "tutorials/tut08",
+        "tutorials/tut09",
     ]
 }

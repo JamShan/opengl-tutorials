@@ -55,6 +55,7 @@ the following will be coming soon:
 - http://ogldev.atspace.co.uk/
 - http://duriansoftware.com/joe/An-intro-to-modern-OpenGL.-Table-of-Contents.html
 - http://www.lighthouse3d.com/tutorials/glsl-core-tutorial/
+- http://www.lighthouse3d.com/cg-topics/code-samples/
 - http://www.mbsoftworks.sk/index.php?page=tutorials
 - http://www.mbsoftworks.sk/index.php?page=demos
 
@@ -70,6 +71,7 @@ although these aren't planned yet:
 - OpenGL Shading Language
 - OpenGL 4.0 Shading Language Cookbook
 - OpenGL Development Cookbook
+- OpenGL Insights
 
 WebGL tutorials and books also exist in great numbers,
 although they might be more difficult to port to D due to the
