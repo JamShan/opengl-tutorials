@@ -21,7 +21,7 @@ import dgl;
 import gl3n.linalg;
 import gl3n.math;
 
-import gltut.utility;
+import gltut.window;
 
 /// The type of projection we want to use.
 enum ProjectionType

@@ -3,11 +3,11 @@
  *  Distributed under the WTFPL Public License, Version 2, December 2004
  *         (See license copy at http://www.wtfpl.net/txt/copying)
  */
-module tut_08_basic_shading;
+module tut_09_vbo_indexing;
 
 /**
     D2 Port of:
-    http://www.opengl-tutorial.org/beginners-tutorials/tutorial-8-basic-shading/
+    http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-9-vbo-indexing/
 */
 
 import deimos.glfw.glfw3;

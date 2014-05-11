@@ -31,7 +31,7 @@ import derelict.sdl2.image;
 import glamour.texture;
 
 import gltut.model_loader;
-import gltut.utility;
+import gltut.window;
 
 /// The type of projection we want to use.
 enum ProjectionType

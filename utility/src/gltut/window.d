@@ -4,7 +4,7 @@
  *     (See accompanying file LICENSE_1_0.txt or copy at
  *           http://www.boost.org/LICENSE_1_0.txt)
  */
-module gltut.utility;
+module gltut.window;
 
 /**
     Contains various helpers, common code, and initialization routines.

@@ -18,7 +18,7 @@ import glad.gl.all;
 
 import dgl;
 
-import gltut.utility;
+import gltut.window;
 
 /**
     Contains all of our OpenGL program state.

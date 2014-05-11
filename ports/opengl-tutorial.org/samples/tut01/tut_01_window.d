@@ -12,7 +12,7 @@ module tut_01_window;
 
 import deimos.glfw.glfw3;
 
-import gltut.utility;
+import gltut.window;
 
 void main()
 {
