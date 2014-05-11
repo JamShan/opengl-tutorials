@@ -7,7 +7,7 @@ module tut_10_transparency;
 
 /**
     D2 Port of:
-    http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-9-vbo-indexing/
+    http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-10-transparency/
 
     Active key / mouse bindings:
 
@@ -840,7 +840,7 @@ void main()
 {
     loadDerelictSDL();
 
-    auto window = createWindow("Tutorial 10- Transparency");
+    auto window = createWindow("Tutorial 10 - Transparency");
 
     // hide the mouse cursor (even when not in client area).
     window.set_input_mode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
