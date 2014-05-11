@@ -55,6 +55,7 @@ the following will be coming soon:
 - http://ogldev.atspace.co.uk/
 - http://duriansoftware.com/joe/An-intro-to-modern-OpenGL.-Table-of-Contents.html
 - http://www.lighthouse3d.com/tutorials/glsl-core-tutorial/
+- http://www.mbsoftworks.sk/index.php?page=tutorials
 
 Note: If you know of any other tutorials targetting OpenGL v3.x+ please file an issue
 with a link to the tutorial, thanks!
