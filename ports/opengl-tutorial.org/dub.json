@@ -28,14 +28,14 @@
     "license": "WTFPL Public Licence",
 
     "subPackages": [
-        "tutorials/tut01",
-        "tutorials/tut02",
-        "tutorials/tut03",
-        "tutorials/tut04",
-        "tutorials/tut05",
-        "tutorials/tut06",
-        "tutorials/tut07",
-        "tutorials/tut08",
-        "tutorials/tut09",
+        "tutorials/01_window",
+        "tutorials/02_triangle",
+        "tutorials/03_matrices",
+        "tutorials/04_colored_cube",
+        "tutorials/05_textured_cube",
+        "tutorials/06_keyboard_mouse",
+        "tutorials/07_model_loading",
+        "tutorials/08_basic_shading",
+        "tutorials/09_vbo_indexing",
     ]
 }
