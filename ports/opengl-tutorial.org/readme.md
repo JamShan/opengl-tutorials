@@ -23,7 +23,7 @@ All of the samples in this repository can be built using [dub]:
 $ dub run opengl-tutorial.org:tut01
 
 # alternatively
-$ cd samples/tut01
+$ cd tutorials/01_window
 $ dub
 ```
 
