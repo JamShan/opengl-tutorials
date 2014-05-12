@@ -21,6 +21,16 @@ These samples use OpenGL v3.x+ and do not cover the dated immediate mode OpenGL.
 Before building make sure you have an OpenGL v3.x+ compatible GPU card and the
 latest device drivers.
 
+## Platform support
+
+- Can build and run on Windows 7 x64 with x86 and x86_64 as the target architectures.
+
+- Can build on Linux x64, with x86_64 as target.
+I was not able to build with x86 as the target.
+Additionally I wasn't able to run the samples since VirtualBox has poor OpenGL driver support.
+
+Note: Use `-a x86` or `-a x86_64` when invoking **dub** to select the target architecture.
+
 ## Building
 
 All of the samples in this repository can be built using [dub] and a recent
