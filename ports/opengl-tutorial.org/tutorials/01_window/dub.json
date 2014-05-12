@@ -13,6 +13,10 @@
         "gltut-utility": {"path": "../../../../utility", "version": "~master"}
     },
 
+    "libs-posix": [
+		"glfw"
+	],
+
     "targetName" : "tut01",
 
     "targetPath" : "../../bin",

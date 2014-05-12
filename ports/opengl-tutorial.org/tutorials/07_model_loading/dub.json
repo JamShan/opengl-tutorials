@@ -16,6 +16,10 @@
         "glamour-drey": ">=0.0.2-alpha",
     },
 
+    "libs-posix": [
+		"glfw"
+	],
+
     "versions": [
         "gl3n",
         "glad",
