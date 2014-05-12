@@ -48,7 +48,7 @@ import glamour.texture;
 
 import gltut.model_indexer;
 import gltut.model_loader;
-import gltut.text;
+import gltut.text_renderer;
 import gltut.window;
 
 /// The type of projection we want to use.
@@ -72,7 +72,7 @@ struct ProgramState
         this.workDirPath = thisExePath.dirName.buildPath("..");
         this.lastTime = glfwGetTime();
 
-        string fontTextPath = workDirPath.buildPath("textures").buildPath("Holstein.png");
+        string fontTextPath = workDirPath.buildPath("textures").buildPath("holstein.png");
         this.textRenderer = TextRenderer(window, fontTextPath);
 
         initTextures();

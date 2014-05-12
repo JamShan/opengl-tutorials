@@ -45,7 +45,8 @@ import glamour.texture;
 
 import gltut.model_indexer;
 import gltut.model_loader;
-import gltut.text;
+import gltut.text_renderer;
+import gltut.texture_loader;
 import gltut.window;
 
 /// The type of projection we want to use.
@@ -69,7 +70,7 @@ struct ProgramState
         this.workDirPath = thisExePath.dirName.buildPath("..");
         this.lastTime = glfwGetTime();
 
-        string fontTextPath = workDirPath.buildPath("textures").buildPath("Holstein.png");
+        string fontTextPath = workDirPath.buildPath("textures").buildPath("holstein.png");
         this.textRenderer = TextRenderer(window, fontTextPath);
 
         initTextures();
@@ -89,7 +90,10 @@ struct ProgramState
         vertexBuffer.release();
         uvBuffer.release();
         normalBuffer.release();
-        texture.remove();
+
+        normalTexture.remove();
+        diffuseTexture.remove();
+        specularTexture.remove();
 
         foreach (shader; shaders)
             shader.release();
@@ -179,8 +183,11 @@ private:
 
     void initTextures()
     {
-        string textPath = workDirPath.buildPath("textures/suzanne_uvmap.png");
-        this.texture = Texture2D.from_image(textPath);
+        const texturesPath = workDirPath.buildPath("textures");
+
+        this.normalTexture = Texture2D.from_image(texturesPath.buildPath("normal.png"));
+        this.diffuseTexture = texturesPath.buildPath("diffuse.DDS").loadDDSImage();
+        this.specularTexture = texturesPath.buildPath("specular.DDS").loadDDSImage();
     }
 
     void initModels()
@@ -245,6 +252,10 @@ private:
         this.useDiffuseLightUniform = program.getUniform("useDiffuseLight");
         this.useSpecularLightUniform = program.getUniform("useSpecularLight");
         this.colorAlphaUniform = program.getUniform("colorAlpha");
+
+        this.diffuseTextureUniform = program.getUniform("DiffuseTextureSampler");
+        this.normalTextureUniform = program.getUniform("NormalTextureSampler");
+        this.specularTextureUniform = program.getUniform("SpecularTextureSampler");
     }
 
     /**
@@ -473,8 +484,15 @@ private:
     // ditto for normals
     GLBuffer normalBuffer;
 
-    // the texture we're going to use for the cube.
-    Texture2D texture;
+    // the texture's we're going to use for the cylinder object.
+    Texture2D normalTexture;
+    Texture2D diffuseTexture;
+    Texture2D specularTexture;
+
+    // the uniforms for the above textures.
+    Uniform diffuseTextureUniform;
+    Uniform normalTextureUniform;
+    Uniform specularTextureUniform;
 
     // kept around for cleanup.
     Shader[] shaders;
@@ -701,7 +719,7 @@ void renderImpl(ref ProgramState state)
     // set the alpha
     glUniform1f(state.colorAlphaUniform.ID, state.colorAlpha);
 
-    bindTexture(state);
+    bindTextures(state);
     bindIndices(state);
     bindPositionAttribute(state);
     bindUVAttribute(state);
@@ -718,7 +736,9 @@ void renderImpl(ref ProgramState state)
         null               // element array buffer offset
     );
 
-    state.texture.unbind();
+    state.normalTexture.unbind();
+    state.diffuseTexture.unbind();
+    state.specularTexture.unbind();
 
     state.positionAttribute.disable();
     state.uvAttribute.disable();
@@ -772,14 +792,20 @@ void bindNormalAttribute(ref ProgramState state)
     state.normalAttribute.enable();
 }
 
-void bindTexture(ref ProgramState state)
+void bindTextures(ref ProgramState state)
 {
-    // set our texture sampler to use Texture Unit 0
-    enum textureUnit = 0;
-    state.program.setUniform1i(state.textureSamplerUniform, textureUnit);
+    state.diffuseTexture.activate(GL_TEXTURE0);
+    state.diffuseTexture.bind();
+    state.program.setUniform1i(state.diffuseTextureUniform, 0);
 
-    state.texture.activate();
-    state.texture.bind();
+    state.normalTexture.activate(GL_TEXTURE1);
+    state.normalTexture.bind();
+    state.program.setUniform1i(state.normalTextureUniform, 1);
+
+    state.specularTexture.activate(GL_TEXTURE2);
+    state.specularTexture.bind();
+    state.program.setUniform1i(state.specularTextureUniform, 2);
+
 }
 
 /** We're using the Derelict SDL binding for image loading. */

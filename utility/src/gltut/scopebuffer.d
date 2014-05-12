@@ -9,7 +9,10 @@ module gltut.scopebuffer;
 /// Wrapper around std.internal.scopebuffer that defines binary operators.
 struct ScopeBuffer(E)
 {
-    import std.internal.scopebuffer : ScopeBuffer;
+    static if (__VERSION__ >= 2066)
+        import std.internal.scopebuffer : ScopeBuffer;
+    else
+        import gltut.internal.scopebuffer;
 
     ScopeBuffer!E scopeBuffer;
     alias scopeBuffer this;
