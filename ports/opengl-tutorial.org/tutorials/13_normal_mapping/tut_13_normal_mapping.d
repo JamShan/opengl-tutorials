@@ -3,14 +3,11 @@
  *  Distributed under the WTFPL Public License, Version 2, December 2004
  *         (See license copy at http://www.wtfpl.net/txt/copying)
  */
-module tut_12_extensions;
+module tut_13_normal_mapping;
 
 /**
     D2 Port of:
-    http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-12-opengl-extensions/
-
-    Note that the GL_ARB_debug_output / GL_KHR_debug code is located in the gltut.window
-    module which is part of this repository. Have a look there for how it's implemented.
+    http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-13-normal-mapping/
 
     Active key / mouse bindings:
 
@@ -661,9 +658,6 @@ enum fragmentShader = q{
 /** Our main render routine. */
 void render(ref ProgramState state)
 {
-    // example failing code which should trigger an exception and a log.
-    glEnable(GL_TEXTURE);
-
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f);  // dark blue
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -850,7 +844,7 @@ void hookCallbacks(Window window, ref ProgramState state)
     window.on_scroll.strongConnect(onFovChange);
 }
 
-int main()
+void main()
 {
     loadDerelictSDL();
 
@@ -915,16 +909,8 @@ int main()
         */
         state.gameTick();
 
-        try
-        {
-            /* Render to the back buffer. */
-            render(state);
-        }
-        catch (GLException ex)
-        {
-            stderr.writefln("Caught GLException:\n%s", ex.msg);
-            return 0;
-        }
+        /* Render to the back buffer. */
+        render(state);
 
         version (DisplayFrameRate)
         {
@@ -955,6 +941,4 @@ int main()
         if (window.is_key_down(GLFW_KEY_ESCAPE))
             glfwSetWindowShouldClose(window.window, true);
     }
-
-    return 0;
 }

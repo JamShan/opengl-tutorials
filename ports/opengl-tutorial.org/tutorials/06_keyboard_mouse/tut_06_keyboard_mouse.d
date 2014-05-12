@@ -191,7 +191,7 @@ private:
 
     void initTextures()
     {
-        string textPath = workDirPath.buildPath("textures/uvtemplate.tga");
+        string textPath = workDirPath.buildPath("textures/uvtemplate.png");
         this.texture = Texture2D.from_image(textPath);
     }
 
@@ -437,9 +437,9 @@ private:
     // This isn't efficient but it serves as an example.
     float[] uvArr =
     [
-        // Note: the '1.0f -' part is there in case the .tga image
+        // Note: the '1.0f -' part is there in case the image
         // was already flipped. The texture loading routines in
-        // glamour may or may not flip the TGA vertically,
+        // glamour may or may not flip the image vertically,
         // based on the code path it takes.
         0.000059f, 1.0f - 0.000004f,
         0.000103f, 1.0f - 0.336048f,

@@ -69,7 +69,7 @@ struct ProgramState
         this.workDirPath = thisExePath.dirName.buildPath("..");
         this.lastTime = glfwGetTime();
 
-        string fontTextPath = workDirPath.buildPath("textures").buildPath("Holstein.tga");
+        string fontTextPath = workDirPath.buildPath("textures").buildPath("Holstein.png");
         this.textRenderer = TextRenderer(window, fontTextPath);
 
         initTextures();
