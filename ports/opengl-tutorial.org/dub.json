@@ -36,5 +36,6 @@
         "tutorials/09_vbo_indexing_multiobj",
         "tutorials/10_transparency",
         "tutorials/11_text",
+        "tutorials/12_extensions",
     ]
 }

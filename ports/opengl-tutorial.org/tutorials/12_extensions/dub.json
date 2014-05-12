@@ -1,7 +1,7 @@
 {
-    "name": "tut09_2",
+    "name": "tut12",
 
-    "description": "tut09_2",
+    "description": "tut12",
 
     "authors": [
         "Sam Hocevar",
@@ -20,17 +20,18 @@
         "gl3n",
         "glad",
         "SDLImage2",
+        "DisplayFrameRate",
     ],
 
-    "targetName" : "tut09_2",
+    "targetName" : "tut12",
 
     "targetPath" : "../../bin",
 
     "targetType": "executable",
 
-    "sourceFiles": ["tut_09_vbo_indexing_multiobj.d"],
+    "sourceFiles": ["tut_12_extensions.d"],
 
-    "mainSourceFile": "tut_09_vbo_indexing_multiobj.d",
+    "mainSourceFile": "tut_12_extensions.d",
 
     "homepage": "https://github.com/AndrejMitrovic/opengl-tutorials",
 

@@ -159,10 +159,24 @@ void glfwErrorCallback(int code, string msg)
     stderr.writefln("Error (%s): %s", code, msg);
 }
 
+///
+class GLException : Exception
+{
+    @safe pure nothrow this(string msg = "", string file = __FILE__, size_t line = __LINE__, Throwable next = null)
+    {
+        super(msg, file, line, next);
+    }
+
+    @safe pure nothrow this(string msg, Throwable next, string file = __FILE__, size_t line = __LINE__)
+    {
+        super(msg, file, line, next);
+    }
+}
+
 /**
     GL_ARB_debug_output or GL_KHR_debug callback.
 
-    Throwing exceptions across language boundaries should be fine as
+    Throwing exceptions across language boundaries is ok as
     long as $(B GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB) is enabled.
 */
 extern (Windows)
@@ -170,5 +184,5 @@ private void glErrorCallback(GLenum source, GLenum type, GLuint id, GLenum sever
 {
     string msg = format("source: %s, type: %s, id: %s, severity: %s, length: %s, message: %s, userParam: %s",
                          source, type, id, severity, length, message.to!string, userParam);
-    throw new Exception(msg);
+    throw new GLException(msg);
 }

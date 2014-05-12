@@ -143,7 +143,7 @@ struct TextRenderer
 
     void bindPositionAttribute()
     {
-        enum int size = 2;  // (x, y, z) per vertex
+        enum int size = 2;  // (x, y) per vertex
         enum GLenum type = GL_FLOAT;
         enum bool normalized = false;
         enum int stride = 0;
