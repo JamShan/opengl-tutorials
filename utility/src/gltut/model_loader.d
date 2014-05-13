@@ -43,6 +43,18 @@ struct IndexedModel
     vec3[] normalArr;
 }
 
+/// A Model that should be drawn via glDrawElements,
+/// but also contains tangents.
+struct IndexedTangentModel
+{
+    ushort[] indexArr;
+    vec3[] vertexArr;
+    vec2[] uvArr;
+    vec3[] normalArr;
+    vec3[] tangentArr;
+    vec3[] biTangentArr;
+}
+
 /**
     Load a .obj model.
 */

@@ -9,6 +9,8 @@ module tut_13_normal_mapping;
     D2 Port of:
     http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-13-normal-mapping/
 
+    Note: Build with -version=RenderMultipleModels to enable rendering multiple objects.
+
     Active key / mouse bindings:
 
     1      => Toggle ambient light.
@@ -16,13 +18,12 @@ module tut_13_normal_mapping;
     3      => Toggle specular light.
     + -    => Increase or decrease the alpha value.
     WASD   => Move camera around.
-    Arrows => Shift the UV Map around.
     P      => Change projection to perspective mode.
     O      => Change projection to ortograpic mode.
     Esc    => Exit.
 */
 
-import std.file : thisExePath;
+import std.file : dirEntries, SpanMode, thisExePath;
 import std.path : buildPath, dirName;
 import std.range : chunks;
 import std.string;
@@ -48,6 +49,54 @@ import gltut.model_loader;
 import gltut.text_renderer;
 import gltut.texture_loader;
 import gltut.window;
+
+/// A model with preloaded GL Buffers.
+struct GLModel
+{
+    void release()
+    {
+        indexBuffer.release();
+        vertexBuffer.release();
+        uvBuffer.release();
+        normalBuffer.release();
+        tangentBuffer.release();
+        biTangentBuffer.release();
+    }
+
+    size_t indexCount;
+    GLBuffer indexBuffer;
+    GLBuffer vertexBuffer;
+    GLBuffer uvBuffer;
+    GLBuffer normalBuffer;
+    GLBuffer tangentBuffer;
+    GLBuffer biTangentBuffer;
+}
+
+GLModel getGLModel(IndexedTangentModel model)
+{
+    GLModel result;
+
+    enforce(model.indexArr.length);
+    result.indexCount = cast(int)model.indexArr.length;
+    result.indexBuffer = new GLBuffer(model.indexArr, UsageHint.staticDraw);
+
+    enforce(model.vertexArr.length);
+    result.vertexBuffer = new GLBuffer(model.vertexArr, UsageHint.staticDraw);
+
+    enforce(model.uvArr.length);
+    result.uvBuffer = new GLBuffer(model.uvArr, UsageHint.staticDraw);
+
+    enforce(model.normalArr.length);
+    result.normalBuffer = new GLBuffer(model.normalArr, UsageHint.staticDraw);
+
+    enforce(model.tangentArr.length);
+    result.tangentBuffer = new GLBuffer(model.tangentArr, UsageHint.staticDraw);
+
+    enforce(model.biTangentArr.length);
+    result.biTangentBuffer = new GLBuffer(model.biTangentArr, UsageHint.staticDraw);
+
+    return result;
+}
 
 /// The type of projection we want to use.
 enum ProjectionType
@@ -86,11 +135,6 @@ struct ProgramState
     /** Release all OpenGL resources. */
     ~this()
     {
-        indexBuffer.release();
-        vertexBuffer.release();
-        uvBuffer.release();
-        normalBuffer.release();
-
         normalTexture.remove();
         diffuseTexture.remove();
         specularTexture.remove();
@@ -101,6 +145,9 @@ struct ProgramState
         program.release();
 
         textRenderer.release();
+
+        foreach (ref model; loadedModels)
+            model.release();
 
         glfwTerminate();
     }
@@ -164,6 +211,8 @@ struct ProgramState
     {
         updateViewMatrix();
         updateMvpMatrix();
+        updateModelViewMatrix();
+        updateModelView3x3Matrix();
     }
 
 private:
@@ -175,10 +224,20 @@ private:
 
     void updateMvpMatrix()
     {
-        auto projMatrix = getProjMatrix();
+        this.projMatrix = getProjMatrix();
 
         // Remember that matrix multiplication is right-to-left.
         this.mvpMatrix = projMatrix * viewMatrix * modelMatrix;
+    }
+
+    void updateModelViewMatrix()
+    {
+        this.modelViewMatrix = viewMatrix * modelMatrix;
+    }
+
+    void updateModelView3x3Matrix()
+    {
+        this.modelView3x3Matrix = mat3(modelViewMatrix);
     }
 
     void initTextures()
@@ -192,36 +251,15 @@ private:
 
     void initModels()
     {
-        string modelPath = workDirPath.buildPath("models/suzanne.obj");
-        this.model = aiLoadObjModel(modelPath).getIndexedModel();
-        initIndices();
-        initVertices();
-        initUV();
-        initNormals();
-    }
-
-    void initIndices()
-    {
-        enforce(model.indexArr.length);
-        this.indexBuffer = new GLBuffer(model.indexArr, UsageHint.staticDraw);
-    }
-
-    void initVertices()
-    {
-        enforce(model.vertexArr.length);
-        this.vertexBuffer = new GLBuffer(model.vertexArr, UsageHint.staticDraw);
-    }
-
-    void initUV()
-    {
-        enforce(model.uvArr.length);
-        this.uvBuffer = new GLBuffer(model.uvArr, UsageHint.staticDraw);
-    }
-
-    void initNormals()
-    {
-        enforce(model.normalArr.length);
-        this.normalBuffer = new GLBuffer(model.normalArr, UsageHint.staticDraw);
+        version (RenderMultipleModels)
+        {
+            foreach (modelPath; workDirPath.buildPath("models").dirEntries(SpanMode.shallow))
+                loadedModels ~= aiLoadObjModel(modelPath).getIndexedTangentModel().getGLModel();
+        }
+        else
+        {
+            loadedModels ~= aiLoadObjModel(workDirPath.buildPath("models/cylinder.obj")).getIndexedTangentModel().getGLModel();
+        }
     }
 
     void initShaders()
@@ -237,14 +275,16 @@ private:
 
     void initAttributesUniforms()
     {
-        this.positionAttribute = program.getAttribute("vertexPosition_modelspace");
+        this.positionAttribute = program.getAttribute("vertexPositionModelspace");
         this.uvAttribute = program.getAttribute("vertexUV");
-        this.normalAttribute = program.getAttribute("vertexNormal_modelspace");
+        this.normalAttribute = program.getAttribute("vertexNormalModelspace");
+        this.tangentAttribute = program.getAttribute("vertexTangentModelspace");
+        this.biTangentAttribute = program.getAttribute("vertexBitangentModelspace");
 
         this.mvpUniform = program.getUniform("mvpMatrix");
         this.modelMatrixUniform = program.getUniform("modelMatrix");
         this.viewMatrixUniform = program.getUniform("viewMatrix");
-        this.textureSamplerUniform = program.getUniform("textureSampler");
+        this.modelView3x3MatrixUniform = program.getUniform("modelView3x3Matrix");
 
         this.lightUniform = program.getUniform("lightPositionWorldspace");
 
@@ -253,9 +293,9 @@ private:
         this.useSpecularLightUniform = program.getUniform("useSpecularLight");
         this.colorAlphaUniform = program.getUniform("colorAlpha");
 
-        this.diffuseTextureUniform = program.getUniform("DiffuseTextureSampler");
-        this.normalTextureUniform = program.getUniform("NormalTextureSampler");
-        this.specularTextureUniform = program.getUniform("SpecularTextureSampler");
+        this.diffuseTextureUniform = program.getUniform("diffuseTextureSampler");
+        this.normalTextureUniform = program.getUniform("normalTextureSampler");
+        this.specularTextureUniform = program.getUniform("specularTextureSampler");
     }
 
     /**
@@ -352,37 +392,6 @@ private:
         {
             this.position.y -= deltaTime * this.speed;
         }
-
-        void updateUVBuffer(vec2 offset)
-        {
-            foreach (ref uv; model.uvArr)
-            {
-                uv.x -= offset.x;
-                uv.y -= offset.y;
-            }
-
-            this.uvBuffer.overwrite(model.uvArr);
-        }
-
-        if (window.is_key_down(GLFW_KEY_LEFT))
-        {
-            updateUVBuffer(vec2(deltaTime * -0.3, 0));
-        }
-
-        if (window.is_key_down(GLFW_KEY_RIGHT))
-        {
-            updateUVBuffer(vec2(deltaTime * 0.3, 0));
-        }
-
-        if (window.is_key_down(GLFW_KEY_UP))
-        {
-            updateUVBuffer(vec2(0, deltaTime * 0.3));
-        }
-
-        if (window.is_key_down(GLFW_KEY_DOWN))
-        {
-            updateUVBuffer(vec2(0, deltaTime * -0.3));
-        }
     }
 
     mat4 getProjMatrix()
@@ -437,8 +446,9 @@ private:
         glBindVertexArray(vao);
     }
 
-    // note: this is now an indexed model.
-    IndexedModel model;
+    GLModel[] loadedModels;
+
+    GLModel model;
 
     // time since the last game tick
     double lastTime = 0;
@@ -472,18 +482,6 @@ private:
     // Field of view (note that this was hardcoded in getProjMatrix in previous tutorials)
     float _fov = 45.0;
 
-    // reference to a GPU buffer containing the indices.
-    GLBuffer indexBuffer;
-
-    // ditto, but containing vertices.
-    GLBuffer vertexBuffer;
-
-    // ditto, but containing UV coordinates.
-    GLBuffer uvBuffer;
-
-    // ditto for normals
-    GLBuffer normalBuffer;
-
     // the texture's we're going to use for the cylinder object.
     Texture2D normalTexture;
     Texture2D diffuseTexture;
@@ -503,23 +501,26 @@ private:
     // The vertex positions attribute
     Attribute positionAttribute;
 
-    // ditto for the UV coordinates.
+    // ditto for the fragmentUV coordinates.
     Attribute uvAttribute;
 
     // ditto for the normals.
     Attribute normalAttribute;
+    Attribute tangentAttribute;
+    Attribute biTangentAttribute;
 
     // The uniform (location) of the matrix in the shader.
     Uniform mvpUniform;
-
-    // ditto for the texture sampler.
-    Uniform textureSamplerUniform;
 
     // ditto for the model matrix.
     Uniform modelMatrixUniform;
 
     // ditto for the view matrix.
     Uniform viewMatrixUniform;
+
+    Uniform modelViewMatrixUniform;
+
+    Uniform modelView3x3MatrixUniform;
 
     // ditto for the light.
     Uniform lightUniform;
@@ -535,11 +536,25 @@ private:
     // The currently calculated matrix.
     mat4 mvpMatrix;
 
-    // ditto for the model matrix.
-    mat4 modelMatrix = mat4.identity();
+    version (RenderMultipleModels)
+    {
+        // ditto for the model matrix.
+        mat4 modelMatrix = mat4.identity();
+    }
+    else
+    {
+        // move the cylinder a little bit lower.
+        mat4 modelMatrix = mat4.identity().translate(0, -1.0, 0);
+    }
+
+    mat4 projMatrix;
 
     // ditto for the view matrix.
     mat4 viewMatrix;
+
+    mat4 modelViewMatrix;
+
+    mat3 modelView3x3Matrix;
 
     TextRenderer textRenderer;
 
@@ -551,66 +566,86 @@ private:
 enum vertexShader = q{
     #version 330 core
 
-    // input vertex data, different for all executions of this shader.
-    layout(location = 0) in vec3 vertexPosition_modelspace;
+    // Input vertex data, different for all executions of this shader.
+    layout(location = 0) in vec3 vertexPositionModelspace;
     layout(location = 1) in vec2 vertexUV;
-    layout(location = 2) in vec3 vertexNormal_modelspace;
+    layout(location = 2) in vec3 vertexNormalModelspace;
+    layout(location = 3) in vec3 vertexTangentModelspace;
+    layout(location = 4) in vec3 vertexBitangentModelspace;
 
-    // output data will be interpolated for each fragment.
+    // Output data ; will be interpolated for each fragment.
     out vec2 fragmentUV;
     out vec3 positionWorldspace;
-    out vec3 normalCameraspace;
     out vec3 eyeDirectionCameraspace;
     out vec3 lightDirectionCameraspace;
 
-    // uniform values stay constant for the entire execution of the shader.
+    out vec3 lightDirectionTangentspace;
+    out vec3 eyeDirectionTangentspace;
+
+    // Values that stay constant for the whole mesh.
     uniform mat4 mvpMatrix;
     uniform mat4 viewMatrix;
     uniform mat4 modelMatrix;
+    uniform mat3 modelView3x3Matrix;
     uniform vec3 lightPositionWorldspace;
 
     void main()
     {
-        // output position of the vertex, in clip space - mvpMatrix * position
-        gl_Position = mvpMatrix * vec4(vertexPosition_modelspace, 1);
+        // Output position of the vertex, in clip space : mvpMatrix * position
+        gl_Position = mvpMatrix * vec4(vertexPositionModelspace, 1);
 
-        // position of the vertex, in worldspace - modelMatrix * position
-        positionWorldspace = (modelMatrix * vec4(vertexPosition_modelspace, 1)).xyz;
+        // Position of the vertex, in worldspace : modelMatrix * position
+        positionWorldspace = (modelMatrix * vec4(vertexPositionModelspace, 1)).xyz;
 
-        // vector that goes from the vertex to the camera, in camera space.
-        // in camera space, the camera is at the origin (0,0,0).
-        vec3 vertexPositionCameraspace = (viewMatrix * modelMatrix * vec4(vertexPosition_modelspace, 1)).xyz;
-        eyeDirectionCameraspace = vec3(0, 0, 0) - vertexPositionCameraspace;
+        // Vector that goes from the vertex to the camera, in camera space.
+        // In camera space, the camera is at the origin (0,0,0).
+        vec3 vertexPosition_cameraspace = (viewMatrix * modelMatrix * vec4(vertexPositionModelspace, 1)).xyz;
+        eyeDirectionCameraspace = vec3(0, 0, 0) - vertexPosition_cameraspace;
 
-        // vector that goes from the vertex to the light, in camera space.
-        // modelMatrix is ommited because it's the identity matrix.
-        vec3 lightPositionCameraspace = (viewMatrix * vec4(lightPositionWorldspace, 1)).xyz;
-        lightDirectionCameraspace = lightPositionCameraspace + eyeDirectionCameraspace;
-
-        // normal of the the vertex, in camera space
-        // Only correct if ModelMatrix does not scale the model ! Use its inverse transpose if not.
-        normalCameraspace = (viewMatrix * modelMatrix * vec4(vertexNormal_modelspace, 0)).xyz;
+        // Vector that goes from the vertex to the light, in camera space. modelMatrix is ommited because it's identity.
+        vec3 lightPositionCamerspace = (viewMatrix * vec4(lightPositionWorldspace, 1)).xyz;
+        lightDirectionCameraspace = lightPositionCamerspace + eyeDirectionCameraspace;
 
         // fragmentUV of the vertex. No special space for this one.
         fragmentUV = vertexUV;
+
+        // model to camera = ModelView
+        vec3 vertexTangent_cameraspace   = modelView3x3Matrix * vertexTangentModelspace;
+        vec3 vertexBitangent_cameraspace = modelView3x3Matrix * vertexBitangentModelspace;
+        vec3 vertexNormal_cameraspace    = modelView3x3Matrix * vertexNormalModelspace;
+
+        // You can use dot products instead of building this matrix and transposing it. See References for details.
+        mat3 tbn = transpose(mat3(vertexTangent_cameraspace,
+                                  vertexBitangent_cameraspace,
+                                  vertexNormal_cameraspace));
+
+        lightDirectionTangentspace = tbn * lightDirectionCameraspace;
+        eyeDirectionTangentspace   = tbn * eyeDirectionCameraspace;
     }
 };
 
 enum fragmentShader = q{
     #version 330 core
 
-    // interpolated values from the vertex shaders.
+    // Interpolated values from the vertex shaders
     in vec2 fragmentUV;
     in vec3 positionWorldspace;
-    in vec3 normalCameraspace;
     in vec3 eyeDirectionCameraspace;
     in vec3 lightDirectionCameraspace;
 
-    // ouput color.
+    in vec3 lightDirectionTangentspace;
+    in vec3 eyeDirectionTangentspace;
+
+    // Ouput data
     out vec4 color;
 
-    // uniform values stay constant for the entire execution of the shader.
-    uniform sampler2D textureSampler;
+    // Values that stay constant for the whole mesh.
+    uniform sampler2D diffuseTextureSampler;
+    uniform sampler2D normalTextureSampler;
+    uniform sampler2D specularTextureSampler;
+    uniform mat4 viewMatrix;
+    uniform mat4 modelMatrix;
+    uniform mat3 modelView3x3Matrix;
     uniform vec3 lightPositionWorldspace;
 
     uniform bool useAmbientLight;
@@ -621,42 +656,46 @@ enum fragmentShader = q{
 
     void main()
     {
-        // light emission properties.
-        // you probably want to put them as uniforms.
+        // Light emission properties
+        // You probably want to put them as uniforms
         vec3 lightColor = vec3(1, 1, 1);
-        float lightPower = 50.0f;
+        float lightPower = 40.0;
 
-        // material properties.
-        vec3 materialDiffuseColor  = texture2D(textureSampler, fragmentUV).rgb;
+        // Material properties
+        vec3 materialDiffuseColor  = texture2D(diffuseTextureSampler, fragmentUV).rgb;
         vec3 materialAmbientColor  = vec3(0.1, 0.1, 0.1) * materialDiffuseColor;
-        vec3 materialSpecularColor = vec3(0.3, 0.3, 0.3);
+        vec3 materialSpecularColor = texture2D(specularTextureSampler, fragmentUV).rgb * 0.3;
 
-        // distance to the light.
+        // Local normal, in tangent space. viewMatrix tex coordinate is inverted because normal map is in TGA (not in DDS) for better quality
+        vec3 textureNormalTangentspace = normalize(texture2D(normalTextureSampler,
+                                                             vec2(fragmentUV.x, -fragmentUV.y)).rgb * 2.0 - 1.0);
+
+        // Distance to the light
         float distance = length(lightPositionWorldspace - positionWorldspace);
 
-        // normal of the computed fragment, in camera space.
-        vec3 n = normalize(normalCameraspace);
+        // Normal of the computed fragment, in camera space
+        vec3 n = textureNormalTangentspace;
 
-        // direction of the light (from the fragment to the light).
-        vec3 l = normalize(lightDirectionCameraspace);
+        // Direction of the light (from the fragment to the light)
+        vec3 l = normalize(lightDirectionTangentspace);
 
-        // cosine of the angle between the normal and the light direction,
+        // Cosine of the angle between the normal and the light direction,
         // clamped above 0
         // - light is at the vertical of the triangle -> 1
         // - light is perpendicular to the triangle -> 0
         // - light is behind the triangle -> 0
         float cosTheta = clamp(dot(n, l), 0, 1);
 
-        // eye vector (towards the camera)
-        vec3 E = normalize(eyeDirectionCameraspace);
+        // Eye vector (towards the camera)
+        vec3 E = normalize(eyeDirectionTangentspace);
 
-        // direction in which the triangle reflects the light
+        // Direction in which the triangle reflects the light
         vec3 R = reflect(-l, n);
 
-        // cosine of the angle between the Eye vector and the Reflect vector,
+        // Cosine of the angle between the Eye vector and the Reflect vector,
         // clamped to 0
-        // - Looking into the reflection => 1
-        // - Looking elsewhere => < 1
+        // - Looking into the reflection -> 1
+        // - Looking elsewhere -> < 1
         float cosAlpha = clamp(dot(E, R), 0, 1);
 
         color.rgb =
@@ -681,15 +720,21 @@ void render(ref ProgramState state)
 
     state.program.bind();
 
-    // render one instance of the object at this position.
-    state.modelMatrix = mat4.identity().translate(-1.5, 0, 0);
-    state.updateProjection();
-    renderImpl(state);
+    /** Render each loaded object at a different position. */
+    foreach (idx, model; state.loadedModels)
+    {
+        state.model = model;
 
-    // render another one at a different position.
-    state.modelMatrix = mat4.identity().translate(1.5, 0, 0);
-    state.updateProjection();
-    renderImpl(state);
+        version (RenderMultipleModels)
+        {
+            state.modelMatrix = mat4.identity()
+                                    .translate(-3.0, 0, 0)
+                                    .translate(idx * 3.0, 0, 0);
+        }
+
+        state.updateProjection();
+        renderImpl(state);
+    }
 
     state.program.unbind();
 }
@@ -706,9 +751,21 @@ void renderImpl(ref ProgramState state)
     glUniformMatrix4fv(state.mvpUniform.ID, matrixCount, doTranspose, &state.mvpMatrix[0][0]);
     glUniformMatrix4fv(state.modelMatrixUniform.ID, matrixCount, doTranspose, &state.modelMatrix[0][0]);
     glUniformMatrix4fv(state.viewMatrixUniform.ID, matrixCount, doTranspose, &state.viewMatrix[0][0]);
+    glUniformMatrix4fv(state.modelViewMatrixUniform.ID, matrixCount, doTranspose, &state.modelViewMatrix[0][0]);
+
+    // note: this is a 3x3 matrix
+    glUniformMatrix3fv(state.modelView3x3MatrixUniform.ID, matrixCount, doTranspose, &state.modelView3x3Matrix[0][0]);
 
     // set the light
-    vec3 lightPos = vec3(4, 4, 4);
+    version (RenderMultipleModels)
+    {
+        vec3 lightPos = vec3(0, 0, 4);
+    }
+    else
+    {
+        vec3 lightPos = vec3(0, -1, 4);
+    }
+
     glUniform3f(state.lightUniform.ID, lightPos.x, lightPos.y, lightPos.z);
 
     // set the light settings
@@ -724,11 +781,13 @@ void renderImpl(ref ProgramState state)
     bindPositionAttribute(state);
     bindUVAttribute(state);
     bindNormalAttribute(state);
+    bindTangentAttribute(state);
+    bindBiTangentAttribute(state);
 
     // note: we're no longer using glDrawArrays, but glDrawElements instead.
     // the glDrawElements will use the indices which were last bound to
     // the builtin GL_ELEMENT_ARRAY_BUFFER (see bindIndices).
-    const indexCount = state.model.indexArr.length;
+    auto indexCount = state.model.indexCount;
     glDrawElements(
         GL_TRIANGLES,      // mode
         indexCount,        // count
@@ -743,15 +802,19 @@ void renderImpl(ref ProgramState state)
     state.positionAttribute.disable();
     state.uvAttribute.disable();
     state.normalAttribute.disable();
+    state.tangentAttribute.disable();
+    state.biTangentAttribute.disable();
 
-    state.vertexBuffer.unbind();
-    state.uvBuffer.unbind();
-    state.normalBuffer.unbind();
+    state.model.vertexBuffer.unbind();
+    state.model.uvBuffer.unbind();
+    state.model.normalBuffer.unbind();
+    state.model.tangentBuffer.unbind();
+    state.model.biTangentBuffer.unbind();
 }
 
 void bindIndices(ref ProgramState state)
 {
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, state.indexBuffer.ID);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, state.model.indexBuffer.ID);
 }
 
 void bindPositionAttribute(ref ProgramState state)
@@ -762,7 +825,7 @@ void bindPositionAttribute(ref ProgramState state)
     enum int stride = 0;
     enum int offset = 0;
 
-    state.vertexBuffer.bind(state.positionAttribute, size, type, normalized, stride, offset);
+    state.model.vertexBuffer.bind(state.positionAttribute, size, type, normalized, stride, offset);
     state.positionAttribute.enable();
 }
 
@@ -775,7 +838,7 @@ void bindUVAttribute(ref ProgramState state)
     enum int stride = 0;
     enum int offset = 0;
 
-    state.uvBuffer.bind(state.uvAttribute, size, type, normalized, stride, offset);
+    state.model.uvBuffer.bind(state.uvAttribute, size, type, normalized, stride, offset);
     state.uvAttribute.enable();
 }
 
@@ -788,8 +851,32 @@ void bindNormalAttribute(ref ProgramState state)
     enum int stride = 0;
     enum int offset = 0;
 
-    state.normalBuffer.bind(state.normalAttribute, size, type, normalized, stride, offset);
+    state.model.normalBuffer.bind(state.normalAttribute, size, type, normalized, stride, offset);
     state.normalAttribute.enable();
+}
+
+void bindTangentAttribute(ref ProgramState state)
+{
+    enum int size = 3;  // (r, g, b)
+    enum GLenum type = GL_FLOAT;
+    enum bool normalized = false;
+    enum int stride = 0;
+    enum int offset = 0;
+
+    state.model.tangentBuffer.bind(state.tangentAttribute, size, type, normalized, stride, offset);
+    state.tangentAttribute.enable();
+}
+
+void bindBiTangentAttribute(ref ProgramState state)
+{
+    enum int size = 3;  // (r, g, b)
+    enum GLenum type = GL_FLOAT;
+    enum bool normalized = false;
+    enum int stride = 0;
+    enum int offset = 0;
+
+    state.model.biTangentBuffer.bind(state.biTangentAttribute, size, type, normalized, stride, offset);
+    state.biTangentAttribute.enable();
 }
 
 void bindTextures(ref ProgramState state)
