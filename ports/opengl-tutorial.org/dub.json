@@ -38,5 +38,6 @@
         "tutorials/11_text",
         "tutorials/12_extensions",
         "tutorials/13_normal_mapping",
+        "tutorials/14_render_to_texture",
     ]
 }
