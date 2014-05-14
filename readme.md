@@ -14,7 +14,7 @@ Homepage: https://github.com/AndrejMitrovic/opengl-tutorials
 
 ## Target OpenGL version
 
-These samples use OpenGL v3.x+ and do not cover the dated immediate mode OpenGL.
+These samples use OpenGL v3.x+ and do not cover immediate mode OpenGL.
 
 ## Hardware Requirements
 
@@ -23,9 +23,9 @@ latest device drivers.
 
 ## Platform support
 
-- Can build and run on Windows 7 x64 with x86 and x86_64 as the target architectures.
+- Tested run on Windows 7 x64 with x86 and x86_64 as the target architectures.
 
-- Can build on Linux x64, with x86_64 as target.
+- Buildable on Linux x64, with x86_64 as target.
 I was not able to build with x86 as the target.
 Additionally I wasn't able to run the samples since VirtualBox has poor OpenGL driver support.
 
@@ -33,7 +33,7 @@ Note: Use `-a x86` or `-a x86_64` when invoking **dub** to select the target arc
 
 ## Building
 
-All of the samples in this repository can be built using [dub] and a recent
+All of the samples in this repository can be built using [dub] and a recent (2.065+)
 version of a D [compiler][compilers].
 
 ## List of OpenGL projects in this repository
@@ -44,15 +44,15 @@ version of a D [compiler][compilers].
 
 The [opengl-tutorial.org] project is a set of C++ tutorials covering OpenGL v3.3+.
 
-The included D [port][opengl-tutorial-port] contains all of the code samples which have been ported into D.
+The included [D port][opengl-tutorial-port] contains code samples which have been ported into D.
 
 [opengl-tutorial.org]: http://www.opengl-tutorial.org/
 [opengl-tutorial-port]: https://github.com/AndrejMitrovic/opengl-tutorials/tree/master/ports/opengl-tutorial.org
 
 ### Upcoming Ports
 
-There are several D ports that are awaiting some cleanup and dub-ification,
-the following will be coming soon:
+There are several D ports that are awaiting some cleanup and dubification,
+the following are coming soon:
 
 - http://www.arcsynthesis.org/gltut
 - http://open.gl
@@ -68,35 +68,31 @@ the following will be coming soon:
 - http://www.lighthouse3d.com/cg-topics/code-samples/
 - http://www.mbsoftworks.sk/index.php?page=tutorials
 - http://www.mbsoftworks.sk/index.php?page=demos
+- http://www.humus.name/index.php?page=3D
 
 Note: If you know of any other tutorials targetting OpenGL v3.x+ please file an issue
 with a link to the tutorial, thanks!
 
-Additionally examples from the following books might be worth porting,
+Examples from the following books might be worth porting,
 although these aren't planned yet:
 
-- Real-Time Rendering
-- OpenGL Programming Guide
-- OpenGL SuperBible
-- OpenGL Shading Language
-- OpenGL 4.0 Shading Language Cookbook
-- OpenGL Development Cookbook
-- OpenGL Insights
+- [Real-Time Rendering](http://www.realtimerendering.com/)
+- [OpenGL Programming Guide (8th edition)](http://amzn.com/0321773039)
+- [OpenGL SuperBible](http://www.openglsuperbible.com/)
+- [OpenGL Shading Language](http://amzn.com/0321637631)
+- [OpenGL 4.0 Shading Language Cookbook](http://amzn.com/1782167021)
+- [OpenGL Development Cookbook](http://amzn.com/1849695040)
+- [OpenGL Insights](http://amzn.com/1439893764)
 
-WebGL tutorials and books also exist in great numbers,
-although they might be more difficult to port to D due to the
-use of Javascript / HTML5.
+WebGL-based tutorials and books also exist in great numbers,
+and should be worth porting to D.
 
 ## License
 
-Unless noted otherwise, samples are distributed under the [Boost Software License][BoostLicense], Version 1.0.
-
-Note that samples which were ported from existing tutorials likely have their own specific license.
-
-See their accompanying license headers for more info.
+Each tutorial or book has a license for the samples that it contains.
+Check the individual D ports for licensing information.
 
 [dub]: http://code.dlang.org/download
-[BoostLicense]: http://www.boost.org/LICENSE_1_0.txt
 [Derelict3]: https://github.com/aldacron/Derelict3
 [glad]: https://github.com/Dav1dde/glad
 [compilers]: http://wiki.dlang.org/Compilers
