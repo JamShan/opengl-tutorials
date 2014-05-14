@@ -2,3 +2,4 @@
 *.dll
 *.bat
 bin/
+dub.selections.json
