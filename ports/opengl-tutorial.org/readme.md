@@ -1,8 +1,8 @@
-# D2 Port of opengl-tutorial.org
+# D2 Port of opengl-tutorial.org (work in progress)
 
 The [opengl-tutorial.org] project is a set of C++ tutorials covering OpenGL v3.3+.
 
-The included D [port][opengl-tutorial-port] contains all of the code samples which have been ported into D.
+The included D [port][opengl-tutorial-port] contains the code samples which have been ported into D.
 
 ## Dependencies
 
@@ -24,17 +24,17 @@ All of the samples in this repository can be built using [dub]:
 # note: In an upcoming dub release this will be 'dub run :tut01'
 $ dub run opengl-tutorial.org:tut01
 
-# alternatively
+# alternatively CD to a sample's directory and simply run dub
 $ cd tutorials/01_window
 $ dub
 ```
 
 ## License
 
-Unless noted otherwise, samples are distributed under the [WTFPL Public License][WTFPL_License], Version 2, December 2004.
+Unless noted otherwise, the samples are distributed under the [WTFPL Public License][WTFPL_License], Version 2, December 2004.
 
 [opengl-tutorial.org]: http://www.opengl-tutorial.org
-[opengl-tutorial-port]: https://github.com/AndrejMitrovic/opengl-tutorials/tree/master/ports/opengl-tutorial.org
+[opengl-tutorial-port]: https://github.com/d-gamedev-team/opengl-tutorials/tree/master/ports/opengl-tutorial.org
 [dub]: http://code.dlang.org/download
 [WTFPL_License]: http://www.wtfpl.net/txt/copying
 [glfw3]: http://www.glfw.org

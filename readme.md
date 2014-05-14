@@ -10,7 +10,7 @@ make it easy for new D game developers to learn from and experiment with.
 
 It is a long-term project and will be getting steady updates over time.
 
-Homepage: https://github.com/AndrejMitrovic/opengl-tutorials
+Homepage: https://github.com/d-gamedev-team/opengl-tutorials
 
 ## Target OpenGL version
 
@@ -26,8 +26,9 @@ latest device drivers.
 - Tested run on Windows 7 x64 with x86 and x86_64 as the target architectures.
 
 - Buildable on Linux x64, with x86_64 as target.
-I was not able to build with x86 as the target.
-Additionally I wasn't able to run the samples since VirtualBox has poor OpenGL driver support.
+We have not been able to build with x86 as the target yet.
+Additionally we weren't able to run the samples on Posix since
+VirtualBox has poor OpenGL driver support.
 
 Note: Use `-a x86` or `-a x86_64` when invoking **dub** to select the target architecture.
 
@@ -47,7 +48,7 @@ The [opengl-tutorial.org] project is a set of C++ tutorials covering OpenGL v3.3
 The included [D port][opengl-tutorial-port] contains code samples which have been ported into D.
 
 [opengl-tutorial.org]: http://www.opengl-tutorial.org/
-[opengl-tutorial-port]: https://github.com/AndrejMitrovic/opengl-tutorials/tree/master/ports/opengl-tutorial.org
+[opengl-tutorial-port]: https://github.com/d-gamedev-team/opengl-tutorials/tree/master/ports/opengl-tutorial.org
 
 ### Upcoming Ports
 
