@@ -70,6 +70,7 @@ the following are coming soon:
 - http://www.mbsoftworks.sk/index.php?page=tutorials
 - http://www.mbsoftworks.sk/index.php?page=demos
 - http://www.humus.name/index.php?page=3D
+- http://learningwebgl.com
 
 Note: If you know of any other tutorials targetting OpenGL v3.x+ please file an issue
 with a link to the tutorial, thanks!
