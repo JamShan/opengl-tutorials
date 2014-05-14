@@ -1,6 +1,8 @@
 # D2 Port of opengl-tutorial.org (work in progress)
 
 The [opengl-tutorial.org] project is a set of C++ tutorials covering OpenGL v3.3+.
+They were created by Sam Hocevar. If you use these D ports and follow the C++ tutorials,
+please do give credit to the original author, thanks!
 
 The included D [port][opengl-tutorial-port] contains the code samples which have been ported into D.
 
@@ -18,7 +20,7 @@ or alternatively copy the binaries to the `bin` folder where the samples are bui
 
 ## Building the samples
 
-All of the samples in this repository can be built using [dub].
+All of the samples in this repository can be built using [dub] and DMD v2.065+.
 
 ```
 # note: In an upcoming dub release this will be 'dub run :tut01'

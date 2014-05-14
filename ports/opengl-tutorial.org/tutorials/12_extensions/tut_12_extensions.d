@@ -919,10 +919,12 @@ int main()
         {
             /* Render to the back buffer. */
             render(state);
+            int x;
+            assert(x, "This part should not have been reached");
         }
         catch (GLException ex)
         {
-            stderr.writefln("Caught GLException:\n%s", ex.msg);
+            stderr.writefln("Expected exception caught: GLException:\n%s", ex.msg);
             return 0;
         }
 

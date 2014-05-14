@@ -1144,7 +1144,7 @@ void main()
 {
     loadDerelictSDL();
 
-    auto window = createWindow("Tutorial 12 - Extensions");
+    auto window = createWindow("Tutorial 14 - Render To Texture");
 
     // hide the mouse cursor (even when not in client area).
     window.set_input_mode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
