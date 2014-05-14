@@ -18,7 +18,7 @@ or alternatively copy the binaries to the `bin` folder where the samples are bui
 
 ## Building the samples
 
-All of the samples in this repository can be built using [dub]:
+All of the samples in this repository can be built using [dub].
 
 ```
 # note: In an upcoming dub release this will be 'dub run :tut01'
@@ -27,6 +27,14 @@ $ dub run opengl-tutorial.org:tut01
 # alternatively CD to a sample's directory and simply run dub
 $ cd tutorials/01_window
 $ dub
+```
+
+**Windows Note:** The current stable version of dub (**v0.9.21**) is known to cause build failures
+with large paths. If you get the following error please see [Issue 1] for a known workaround:
+
+```
+FAIL ..\..\..\..\..\..\..\Users\Administrator\AppData\Roaming\dub\packages\derelict-sdl2-master\.dub\bu
+ild\library-debug-windows-x86-dmd-8466FCC3A6F0C9E65596CF2220F000DE DerelictSDL2 staticLibrary
 ```
 
 ## License
@@ -41,3 +49,4 @@ Unless noted otherwise, the samples are distributed under the [WTFPL Public Lice
 [SDL2]: http://www.libsdl.org
 [SDL2 Image]: https://www.libsdl.org/projects/SDL_image
 [assimp]: http://assimp.sourceforge.net
+[Issue 1]: https://github.com/d-gamedev-team/opengl-tutorials/issues/1
