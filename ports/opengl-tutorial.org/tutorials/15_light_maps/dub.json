@@ -1,0 +1,36 @@
+{
+    "name": "tut15",
+
+    "description": "tut15",
+
+    "authors": [
+        "Sam Hocevar",
+        "Andrej Mitrovic"
+    ],
+
+    "dependencies": {
+        "opengl-tutorial.org": {"path": "../../", "version": "~master"},
+    },
+
+    "versions": [
+        "gl3n",
+        "glad",
+        "SDLImage2",
+    ],
+
+    "targetName" : "tut15",
+
+    "targetPath" : "../../bin",
+
+    "targetType": "executable",
+
+    "sourceFiles": ["tut_15_light_maps.d"],
+
+    "mainSourceFile": "tut_15_light_maps.d",
+
+    "homepage": "https://github.com/d-gamedev-team/opengl-tutorials",
+
+    "copyright": "Copyright (C) 2004 Sam Hocevar <sam@hocevar.net>, Copyright © 2014, Andrej Mitrovic",
+
+    "license": "WTFPL Public Licence",
+}

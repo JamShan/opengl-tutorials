@@ -67,8 +67,8 @@ Model loadObjModel(string path)
     Appender!(vec2[]) temp_uvs;
     Appender!(vec3[]) temp_normals;
 
-    enforce(path.exists);
-    enforce(path.extension == ".obj");
+    enforce(path.exists, format("File '%s' does not exist.", path));
+    enforce(path.extension == ".obj", format("Can only load .obj models, not '%s'", path.baseName));
     auto file = File(path, "r");
 
     foreach (line; file.byLine())
