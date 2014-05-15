@@ -11,7 +11,7 @@ The included D [port][opengl-tutorial-port] contains the code samples which have
 You will need to install the following shared libraries:
 
 - [glfw3]
-- [SDL2] (version 2.02 o 2.03)
+- [SDL2] (version 2.02 or 2.03)
 - [SDL2 Image] (version 2.00+)
 - [Assimp]
 
