@@ -71,6 +71,8 @@ the following are coming soon:
 - http://www.mbsoftworks.sk/index.php?page=demos
 - http://www.humus.name/index.php?page=3D
 - http://learningwebgl.com
+- http://www.spacesimulator.net/wiki/index.php?title=3d_Engine_Programming_Tutorials
+- http://en.wikibooks.org/wiki/OpenGL_Programming (Covers GL v2.x, but can be ported to 3.x)
 
 Note: If you know of any other tutorials targetting OpenGL v3.x+ please file an issue
 with a link to the tutorial, thanks!
