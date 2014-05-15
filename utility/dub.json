@@ -9,7 +9,7 @@
         "glwtf-drey": ">=0.0.1",
         "gl3n": "~master",
         "derelict-assimp3": "~master",
-        "glamour-drey": ">=0.0.2-alpha",
+        "glamour-drey": ">=0.0.3-alpha",
         "dgl": ">=0.0.5",
     },
 

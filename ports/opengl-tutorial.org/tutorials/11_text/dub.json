@@ -11,9 +11,9 @@
     "dependencies": {
         "opengl-tutorial.org": {"path": "../../", "version": "~master"},
         "gltut-utility": {"path": "../../../../utility", "version": "~master"},
-        "derelict-sdl2": "~master",
+        "derelict-sdl2": "~>1.2.0",
         "gl3n": "~master",
-        "glamour-drey": ">=0.0.2-alpha",
+        "glamour-drey": ">=0.0.3-alpha",
     },
 
     "libs-posix": [
