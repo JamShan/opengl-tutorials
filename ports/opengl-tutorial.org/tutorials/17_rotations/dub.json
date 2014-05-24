@@ -1,0 +1,45 @@
+{
+    "name": "tut17",
+
+    "description": "tut17",
+
+    "authors": [
+        "Sam Hocevar",
+        "Andrej Mitrovic"
+    ],
+
+    "dependencies": {
+        "opengl-tutorial.org": {"path": "../../", "version": "~master"},
+        "gltut-utility": {"path": "../../../../utility", "version": "~master"},
+        "derelict-sdl2": "~>1.2.0",
+        "gl3n": "~master",
+        "glamour-drey": ">=0.0.3-alpha",
+        "ant-tweak-bar-d": ">=0.0.2",
+    },
+
+    "libs-posix": [
+		"glfw"
+	],
+
+    "versions": [
+        "gl3n",
+        "glad",
+        "SDLImage2",
+    ],
+
+    "targetName" : "tut17",
+
+    "targetPath" : "../../bin",
+
+    "targetType": "executable",
+
+    "sourceFiles": ["tut_17_rotations.d"],
+
+    "mainSourceFile": "tut_17_rotations.d",
+
+    "homepage": "https://github.com/d-gamedev-team/opengl-tutorials",
+
+    "copyright": "Copyright (C) 2004 Sam Hocevar <sam@hocevar.net>, Copyright © 2014, Andrej Mitrovic",
+
+    "license": "WTFPL Public Licence",
+}

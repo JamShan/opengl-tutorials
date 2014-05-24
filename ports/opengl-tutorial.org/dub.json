@@ -41,5 +41,6 @@
         "tutorials/14_render_to_texture",
         "tutorials/15_light_maps",
         "tutorials/16_shadow_maps",
+        "tutorials/17_rotations",
     ]
 }
