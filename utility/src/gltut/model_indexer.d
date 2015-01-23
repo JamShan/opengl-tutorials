@@ -13,6 +13,8 @@ module gltut.model_indexer;
     Copyright (C) 2004 Sam Hocevar <sam@hocevar.net>
 */
 
+import core.internal.hash;
+
 import std.array;
 import std.math;
 
@@ -242,6 +244,16 @@ struct PackedVertex
     vec3 position;
     vec2 uv;
     vec3 normal;
+
+    // workaround for 2.066.1+
+    hash_t toHash() const nothrow
+    {
+        try
+        {
+            return hashOf(*cast(ubyte[typeof(this).sizeof]*)&this);
+        }
+        catch (Throwable) { assert(0, "assert"); }
+    }
 }
 
 private bool getSimilarVertexIndex_fast(
