@@ -9,7 +9,7 @@
         "glwtf-drey": ">=0.0.1",
         "gl3n": "~master",
         "derelict-assimp3": "~master",
-        "glamour-drey": ">=0.0.3-alpha",
+        "glamour-drey": ">=0.0.4-alpha",
         "dgl": ">=0.0.5",
     },
 
@@ -18,6 +18,10 @@
         "glad",
         "SDLImage2",
     ],
+
+    "libs-posix": ["glfw", "GL", "Xrandr", "Xi", "Xinerama", "Xcursor",
+                   "Xrender", "drm", "Xdamage", "Xxf86vm", "Xext", "X11",
+                   "pthread"],
 
     "targetName": "gltut-utility",
 
